@@ -11,58 +11,10 @@ import {
   Menu,
   X
 } from 'lucide-react';
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-
-const Navbar = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  
-  return (
-    <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Gamepad2 className="w-8 h-8 text-primary" />
-          <span className="text-xl font-bold">ThiGame</span>
-        </div>
-        
-        {/* Mobile menu button */}
-        <Button 
-          variant="ghost" 
-          className="lg:hidden" 
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-        >
-          {isMenuOpen ? <X /> : <Menu />}
-        </Button>
-
-        {/* Desktop menu */}
-        <div className="hidden lg:flex items-center gap-6">
-          <Button variant="ghost" className="text-base">
-            Tous les jeux
-          </Button>
-          <Button variant="ghost" className="text-base">
-            À propos
-          </Button>
-        </div>
-
-        {/* Mobile menu panel */}
-        {isMenuOpen && (
-          <div className="absolute top-full left-0 right-0 bg-background border-b py-4 lg:hidden">
-            <div className="container space-y-4">
-              <Button variant="ghost" className="w-full justify-start">
-                Tous les jeux
-              </Button>
-              <Button variant="ghost" className="w-full justify-start">
-                À propos
-              </Button>
-            </div>
-          </div>
-        )}
-      </div>
-    </nav>
-  );
-};
+import { Navbar } from '../components/Navbar';
 
 const featuredGames = [
   {
@@ -195,7 +147,7 @@ export default function Home() {
         </section>
 
         {/* Features Section */}
-        <section id="features" className="bg-accent/50 py-16 -mx-6 px-6">
+        {/* <section id="features" className="bg-accent/50 py-16 -mx-6 px-6">
           <div className="text-center mb-10">
             <h2 className="text-3xl font-bold mb-4">Pourquoi ThiGame ?</h2>
             <p className="text-muted-foreground">Une expérience de jeu unique et moderne</p>
@@ -214,7 +166,7 @@ export default function Home() {
               );
             })}
           </div>
-        </section>
+        </section> */}
       </div>
     </div>
   );
