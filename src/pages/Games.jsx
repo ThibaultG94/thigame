@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Navbar } from "../components/Navbar";
-import { ArrowRight, Badge, Brain, Dices, Search, SlidersHorizontal, Timer } from "lucide-react";
-import { Button } from "../components/ui/button";
+import { Brain, Dices, Search, Timer } from "lucide-react";
 import { Card, CardContent } from "../components/ui/card";
 import { cn } from '@/utils/cn';
 
@@ -41,6 +40,28 @@ const allGames = [
         path: "/games/puzzle"
       }
 ]
+
+function FilterSection({ title, options, value, onChange }) {
+    return (
+      <div className="flex gap-4 items-center">
+        <span className="text-sm font-medium min-w-24">{title}</span>
+        <div className="flex flex-wrap gap-2">
+          {options.map(option => (
+            <button
+              key={option}
+              onClick={() => onChange(value === option ? '' : option)}
+              className={cn(
+                "px-3 py-1.5 rounded-full text-sm border transition-all",
+                value === option ? "bg-primary text-primary-foreground" : "hover:bg-accent"
+              )}
+            >
+              {option}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+}
 
 function FilterButton({ selected, onClick, children }) {
     return (
@@ -107,69 +128,40 @@ export default function Games() {
               <p className="text-muted-foreground">Trouvez votre prochain défi</p>
             </div>
     
-            <div className="space-y-6">
-              {/* Barre de recherche */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <input
-                  type="text"
-                  placeholder="Rechercher un jeu..."
-                  className="w-full pl-10 pr-4 py-2 rounded-lg border bg-background"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-    
-              {/* Filtres */}
-              <div className="space-y-4">
-                {/* Difficulté */}
-                <div className="space-y-2">
-                  <h3 className="font-medium">Difficulté</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {['Facile', 'Moyen', 'Difficile'].map(diff => (
-                      <FilterButton
-                        key={diff}
-                        selected={difficulty === diff}
-                        onClick={() => setDifficulty(difficulty === diff ? '' : diff)}
-                      >
-                        {diff}
-                      </FilterButton>
-                    ))}
-                  </div>
+            <div className="space-y-4">
+                {/* Barre de recherche */}
+                <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                    <input
+                    type="text"
+                    placeholder="Rechercher un jeu..."
+                    className="w-full pl-10 pr-4 py-2 rounded-lg border bg-background"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    />
                 </div>
-    
-                {/* Catégorie */}
-                <div className="space-y-2">
-                  <h3 className="font-medium">Catégorie</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {['Mémoire', 'Réflexes', 'Logique'].map(cat => (
-                      <FilterButton
-                        key={cat}
-                        selected={category === cat}
-                        onClick={() => setCategory(category === cat ? '' : cat)}
-                      >
-                        {cat}
-                      </FilterButton>
-                    ))}
-                  </div>
+
+                {/* Filtres horizontaux */}
+                <div className="space-y-3 pt-2">
+                    <FilterSection
+                    title="Difficulté"
+                    options={['Facile', 'Moyen', 'Difficile']}
+                    value={difficulty}
+                    onChange={setDifficulty}
+                    />
+                    <FilterSection
+                    title="Catégorie"
+                    options={['Mémoire', 'Réflexes', 'Logique']}
+                    value={category}
+                    onChange={setCategory}
+                    />
+                    <FilterSection
+                    title="Mode de jeu"
+                    options={['1 joueur', '1-2 joueurs', '2 joueurs']}
+                    value={playerMode}
+                    onChange={setPlayerMode}
+                    />
                 </div>
-    
-                {/* Mode de jeu */}
-                <div className="space-y-2">
-                  <h3 className="font-medium">Mode de jeu</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {['1 joueur', '1-2 joueurs', '2 joueurs'].map(mode => (
-                      <FilterButton
-                        key={mode}
-                        selected={playerMode === mode}
-                        onClick={() => setPlayerMode(playerMode === mode ? '' : mode)}
-                      >
-                        {mode}
-                      </FilterButton>
-                    ))}
-                  </div>
-                </div>
-              </div>
             </div>
     
             {/* Grille de jeux */}
