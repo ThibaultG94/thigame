@@ -4,6 +4,7 @@ import { Navbar } from "../components/Navbar";
 import { ArrowRight, Badge, Brain, Dices, Search, SlidersHorizontal, Timer } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Card, CardContent } from "../components/ui/card";
+import { cn } from '@/utils/cn';
 
 const allGames = [
     {
@@ -41,149 +42,149 @@ const allGames = [
       }
 ]
 
-const difficulties = ['Facile', 'Moyen', 'Difficile'];
-const categories = ['Mémoire', 'Réflexes', 'Logique'];
-const playerModes = ['1 joueur', '1-2 joueurs', "2 joueurs"];
+function FilterButton({ selected, onClick, children }) {
+    return (
+      <button
+        onClick={onClick}
+        className={cn(
+          "px-4 py-2 rounded-full border transition-all",
+          selected ? "bg-primary text-primary-foreground" : "hover:bg-accent"
+        )}
+      >
+        {children}
+      </button>
+    );
+}
+
+function GameCard({ game }) {
+    const navigate = useNavigate();
+    const IconComponent = game.icon;
+  
+    return (
+      <Card 
+        className="hover:shadow-lg transition-all cursor-pointer group"
+        onClick={() => navigate(game.path)}
+      >
+        <CardContent className="p-6">
+          <IconComponent className="w-12 h-12 text-primary mb-4" />
+          <h3 className="text-xl font-bold mb-2">{game.title}</h3>
+          <p className="text-muted-foreground mb-4">{game.description}</p>
+          <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
+            {[game.players, game.time, game.difficulty].map((info, i) => (
+              <span key={i} className="flex items-center">
+                {i > 0 && <span className="mr-2">•</span>}
+                {info}
+              </span>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
 export default function Games() {
-    const navigate = useNavigate();
-    const [searchTheme, setSearchTheme] = useState('');
-    const [selectedDifficulty, setSelectedDifficulty] = useState("");
-    const [selectedCategory, setSelectedCategory] = useState("");
-    const [selectedPlayerMode, setSelectedPlayerMode] = useState("");
-    const [showFilters, setShowFilters] = useState(false);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [difficulty, setDifficulty] = useState("");
+    const [category, setCategory] = useState("");
+    const [playerMode, setPlayerMode] = useState("");
 
     const filteredGames = allGames.filter(game => {
-        const matchesSearch = game.title.toLowerCase().includes(searchTheme.toLowerCase()) || game.description.toLowerCase().includes(searchTheme.toLowerCase());
-        const matchesDifficulty = selectedDifficulty ? game.difficulty === selectedDifficulty : true;
-        const matchesCategory = selectedCategory ? game.category === selectedCategory : true;
-        const matchesPlayerMode = selectedPlayerMode ? game.players === selectedPlayerMode : true;
-
+        const matchesSearch = game.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                             game.description.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesDifficulty = !difficulty || game.difficulty === difficulty;
+        const matchesCategory = !category || game.category === category;
+        const matchesPlayerMode = !playerMode || game.players === playerMode;
+        
         return matchesSearch && matchesDifficulty && matchesCategory && matchesPlayerMode;
     });
 
     return (
         <div>
-            <Navbar />
-            <div className="container py-8 space-y-8">
-                {/* Header */}
-                <div className="text-center">
-                    <h1 className="text-4xl font-bold mb-4">Tous les Jeux</h1>
-                    <p className="text-muted-foreground">Trouvez votre prochain défi</p>
-                </div>
-
-                {/* Search and Filters */}
-                <div className="space-y-4">
-                    <div className="flex flex-col sm:flex-row gap-4">
-                        {/* Search bar */}
-                        <div className="relative flex-1">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-2 text-muted-foreground h-4 w-4" />
-                            <input 
-                                type="text" 
-                                placeholder="Rechercher un jeu..." 
-                                className="w-full pl-10 pr-4 py-2 rounded-md border bg-background"
-                                value={searchTheme}
-                                onChange={(e) => setSearchTheme(e.target.value)} />
-                        </div>
-                    </div>
-
-                    {/* Toggle Filters Button */}
-                    <Button variant="outline" onClick={() => setShowFilters(!showFilters)} className="gap-2">
-                        <SlidersHorizontal className="w-4 h-4" />
-                        Filtres
-                    </Button>
-                </div>
-
-                {/* Filters */}
-                {showFilters && (
-                    <div className="grid sm:grid-cols-3 gap-4 p-4 border rounded-md bg-background/50">
-                        <div className="space-y-2">
-                            <h3 className="font-medium mb-2">Difficulté</h3>
-                            <div className="flex flex-wrap gap-2">
-                                {difficulties.map(diff => (
-                                    <Badge 
-                                        key={diff} 
-                                        variant={selectedDifficulty === diff ? "default" : "outline"}
-                                        className="cursor-pointer"
-                                        onClick={() => setSelectedDifficulty(selectedDifficulty === diff ? "" : diff)}>
-                                        {diff}
-                                    </Badge>
-                                ))}
-                            </div>
-                        </div>
-
-                        <div className="space-y-2">
-                            <h3 className="font-medium mb-2">Catégorie</h3>
-                            <div className="flex flex-wrap gap-2">
-                            {categories.map(cat => (
-                                <Badge
-                                key={cat}
-                                variant={selectedCategory === cat ? "default" : "outline"}
-                                className="cursor-pointer"
-                                onClick={() => setSelectedCategory(selectedCategory === cat ? "" : cat)}
-                                >
-                                {cat}
-                                </Badge>
-                            ))}
-                            </div>
-                        </div>
-
-                        <div className="space-y-2">
-                            <h3 className="font-medium mb-2">Mode de jeu</h3>
-                            <div className="flex flex-wrap gap-2">
-                            {playerModes.map(mode => (
-                                <Badge
-                                key={mode}
-                                variant={selectedPlayerMode === mode ? "default" : "outline"}
-                                className="cursor-pointer"
-                                onClick={() => setSelectedPlayerMode(selectedPlayerMode === mode ? "" : mode)}
-                                >
-                                {mode}
-                                </Badge>
-                            ))}
-                            </div>
-                        </div>
-                    </div>
-                )}
+          <Navbar />
+          <div className="container py-8 space-y-8">
+            <div className="text-center">
+              <h1 className="text-4xl font-bold mb-4">Tous les Jeux</h1>
+              <p className="text-muted-foreground">Trouvez votre prochain défi</p>
             </div>
-
-            {/* Games Grid */}
+    
+            <div className="space-y-6">
+              {/* Barre de recherche */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <input
+                  type="text"
+                  placeholder="Rechercher un jeu..."
+                  className="w-full pl-10 pr-4 py-2 rounded-lg border bg-background"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+    
+              {/* Filtres */}
+              <div className="space-y-4">
+                {/* Difficulté */}
+                <div className="space-y-2">
+                  <h3 className="font-medium">Difficulté</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {['Facile', 'Moyen', 'Difficile'].map(diff => (
+                      <FilterButton
+                        key={diff}
+                        selected={difficulty === diff}
+                        onClick={() => setDifficulty(difficulty === diff ? '' : diff)}
+                      >
+                        {diff}
+                      </FilterButton>
+                    ))}
+                  </div>
+                </div>
+    
+                {/* Catégorie */}
+                <div className="space-y-2">
+                  <h3 className="font-medium">Catégorie</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {['Mémoire', 'Réflexes', 'Logique'].map(cat => (
+                      <FilterButton
+                        key={cat}
+                        selected={category === cat}
+                        onClick={() => setCategory(category === cat ? '' : cat)}
+                      >
+                        {cat}
+                      </FilterButton>
+                    ))}
+                  </div>
+                </div>
+    
+                {/* Mode de jeu */}
+                <div className="space-y-2">
+                  <h3 className="font-medium">Mode de jeu</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {['1 joueur', '1-2 joueurs', '2 joueurs'].map(mode => (
+                      <FilterButton
+                        key={mode}
+                        selected={playerMode === mode}
+                        onClick={() => setPlayerMode(playerMode === mode ? '' : mode)}
+                      >
+                        {mode}
+                      </FilterButton>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+    
+            {/* Grille de jeux */}
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredGames.map(game => {
-                    const IconComponent = game.icon;
-                    return (
-                        <Card 
-                            key={game.id}
-                            className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer"
-                            onClick={() => navigate(game.path)}>
-                                <CardContent className="p-6">
-                                    <div className="mb-6">
-                                        <IconComponent className="w-12 h-12 text-primary mb-4" />
-                                        <h3 className="text-xl font-bold mb-2">{game.title}</h3>
-                                        <p className="text-muted-foreground">{game.description}</p>
-                                    </div>
-                                    <div className="space-y-3">
-                                        <div className="flex gap-2 flex-wrap">
-                                        <Badge>{game.category}</Badge>
-                                        <Badge variant="secondary">{game.players}</Badge>
-                                        <Badge variant="secondary">{game.time}</Badge>
-                                        <Badge variant="secondary">{game.difficulty}</Badge>
-                                        </div>
-                                        <Button className="w-full gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        Jouer maintenant <ArrowRight className="w-4 h-4" />
-                                        </Button>
-                                    </div>
-                                </CardContent>
-                        </Card>
-                    )
-                })}
+              {filteredGames.map(game => (
+                <GameCard key={game.id} game={game} />
+              ))}
             </div>
-
+    
             {filteredGames.length === 0 && (
-                <div className="text-center py-12 text-muted-foreground">
-                    Aucun jeu ne correspond à vos critères de recherche.
-                </div>
+              <div className="text-center py-12 text-muted-foreground">
+                Aucun jeu ne correspond à vos critères de recherche.
+              </div>
             )}
+          </div>
         </div>
-    )
+    );
 }
