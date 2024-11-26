@@ -94,7 +94,7 @@ export default function MemoryPlus() {
         </div>
 
         {/* Stats du jeu */}
-        <div className="grid grid-cols-4 gap-2 mb-4">
+        <div className="grid grid-cols-5 gap-2 mb-4">
           <Card className="p-2">
             <div className="flex items-center justify-center gap-2">
               <Brain className="w-4 h-4 text-primary" />
@@ -133,6 +133,21 @@ export default function MemoryPlus() {
                 <div className="text-lg font-bold">{moves}</div>
               </div>
             </div>
+          </Card>
+
+          <Card className="p-2 flex items-center justify-center">
+            <Button
+              onClick={handleReset}
+              variant="outline"
+              className="flex items-center justify-center gap-2"
+            >
+              <div className="w-full h-full flex items-center gap-2">
+                <Timer className="w-4 h-4" />
+                <div className="text-center">
+                  <div className="text-xs">Recommencer</div>
+                </div>
+              </div>
+            </Button>
           </Card>
         </div>
 
@@ -173,9 +188,6 @@ export default function MemoryPlus() {
               ))}
             </div>
           </div>
-          <Button onClick={handleReset} className="mt-4" variant="outline">
-            Recommencer
-          </Button>
         </div>
       </div>
     </div>
