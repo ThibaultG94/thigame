@@ -1,67 +1,106 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useMemoryStore } from "../store";
 import { ICONS } from "../constants";
 
 export function useMemoryGame() {
-  const { level, incrementScore, incrementMoves, incrementLevel } =
-    useMemoryStore();
+  const level = useMemoryStore((state) => state.level);
+  const handleMatch = useMemoryStore((state) => state.handleMatch);
+  const finishLevel = useMemoryStore((state) => state.finishLevel);
+  const incrementMoves = useMemoryStore((state) => state.incrementMoves);
+
   const [cards, setCards] = useState([]);
   const [flipped, setFlipped] = useState([]);
   const [matched, setMatched] = useState([]);
+  const [isChecking, setIsChecking] = useState(false);
 
-  useEffect(() => {
-    initializeGame();
-  }, [level]);
-
-  const initializeGame = () => {
+  const initializeGame = useCallback(() => {
     const numPairs = Math.min(4 + level, ICONS.length);
     const selectedIcons = ICONS.slice(0, numPairs);
     const gameCards = [...selectedIcons, ...selectedIcons]
       .sort(() => Math.random() - 0.5)
-      .map((item, index) => ({ ...item, uniqueId: index }));
+      .map((item, index) => ({
+        ...item,
+        uniqueId: index,
+        isMatched: false,
+      }));
 
     setCards(gameCards);
     setFlipped([]);
     setMatched([]);
-  };
+    setIsChecking(false);
+  }, [level]);
 
-  const handleCardClick = (uniqueId) => {
-    if (
-      flipped.length === 2 ||
-      flipped.includes(uniqueId) ||
-      matched.includes(uniqueId)
-    )
-      return;
+  useEffect(() => {
+    initializeGame();
+  }, [level, initializeGame]);
 
-    const newFlipped = [...flipped, uniqueId];
-    setFlipped(newFlipped);
-    incrementMoves();
+  const handleCardClick = useCallback(
+    (uniqueId) => {
+      if (
+        isChecking ||
+        flipped.length === 2 ||
+        flipped.includes(uniqueId) ||
+        matched.includes(uniqueId)
+      ) {
+        return;
+      }
 
-    if (newFlipped.length === 2) {
-      const [first, second] = newFlipped;
-      const firstCard = cards.find((card) => card.uniqueId === first);
-      const secondCard = cards.find((card) => card.uniqueId === second);
+      incrementMoves();
 
-      if (firstCard.id === secondCard.id) {
-        setMatched([...matched, first, second]);
-        incrementScore(100 * level);
-        setFlipped([]);
+      const newFlipped = [...flipped, uniqueId];
+      setFlipped(newFlipped);
 
-        if (matched.length + 2 === cards.length) {
+      if (newFlipped.length === 2) {
+        setIsChecking(true);
+        const [first, second] = newFlipped;
+        const firstCard = cards.find((card) => card.uniqueId === first);
+        const secondCard = cards.find((card) => card.uniqueId === second);
+
+        if (firstCard.id === secondCard.id) {
+          // Match trouvé !
           setTimeout(() => {
-            incrementLevel();
+            setMatched((prev) => [...prev, first, second]);
+            setFlipped([]);
+            setIsChecking(false);
+            handleMatch();
+
+            // Vérifier si le niveau est terminé
+            const newMatchedCount = matched.length + 2;
+            if (newMatchedCount === cards.length) {
+              setTimeout(() => {
+                const result = finishLevel();
+                // Attendre un peu avant d'initialiser le nouveau niveau
+                setTimeout(initializeGame, 1000);
+                // TODO: Afficher une animation de victoire ici
+              }, 500);
+            }
+          }, 500);
+        } else {
+          // Pas de match
+          setTimeout(() => {
+            setFlipped([]);
+            setIsChecking(false);
           }, 1000);
         }
-      } else {
-        setTimeout(() => setFlipped([]), 1000);
       }
-    }
-  };
+    },
+    [
+      flipped,
+      matched,
+      cards,
+      handleMatch,
+      incrementMoves,
+      finishLevel,
+      initializeGame,
+      isChecking,
+    ]
+  );
 
   return {
     cards,
     flipped,
     matched,
+    isChecking,
     initializeGame,
     handleCardClick,
   };

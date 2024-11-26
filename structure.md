@@ -83,6 +83,7 @@ Organisation standardisée pour tous les jeux :
   - `components/` : Composants spécifiques au jeu
   - `hooks/` : Hooks spécifiques au jeu
   - `store.js` : État local avec Zustand
+  - `constants.js` : Constantes, configurations et assets du jeu
   - `index.jsx` : Point d'entrée du jeu
 
 ### `/components`
