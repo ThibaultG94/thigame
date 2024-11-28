@@ -13,22 +13,34 @@ export function useMemoryGame() {
   const [matched, setMatched] = useState([]);
   const [isChecking, setIsChecking] = useState(false);
 
+  // Calculer le nombre de paires en fonction du niveau
+  const getNumPairs = useCallback((level) => {
+    // Augmenter progressivement le nombre de paires
+    if (level <= 3) return 4; // 8 cartes
+    if (level <= 6) return 6; // 12 cartes
+    return 8; // 16 cartes
+  }, []);
+
   const initializeGame = useCallback(() => {
-    const numPairs = Math.min(4 + level, ICONS.length);
+    // Préparer les nouvelles cartes avant de les afficher
+    const numPairs = getNumPairs(level);
     const selectedIcons = ICONS.slice(0, numPairs);
     const gameCards = [...selectedIcons, ...selectedIcons]
       .sort(() => Math.random() - 0.5)
       .map((item, index) => ({
         ...item,
-        uniqueId: index,
+        uniqueId: `${level}-${index}`, // Identifiant unique par niveau
         isMatched: false,
       }));
 
-    setCards(gameCards);
+    // Reset des états
     setFlipped([]);
     setMatched([]);
     setIsChecking(false);
-  }, [level]);
+
+    // Mettre à jour les cartes
+    setCards(gameCards);
+  }, [level, getNumPairs]);
 
   useEffect(() => {
     initializeGame();
@@ -46,53 +58,44 @@ export function useMemoryGame() {
       }
 
       incrementMoves();
+      setFlipped((prev) => [...prev, uniqueId]);
 
-      const newFlipped = [...flipped, uniqueId];
-      setFlipped(newFlipped);
-
-      if (newFlipped.length === 2) {
+      // Vérifier la paire si c'est la deuxième carte
+      if (flipped.length === 1) {
         setIsChecking(true);
-        const [first, second] = newFlipped;
-        const firstCard = cards.find((card) => card.uniqueId === first);
-        const secondCard = cards.find((card) => card.uniqueId === second);
+        const firstCard = cards.find((card) => card.uniqueId === flipped[0]);
+        const secondCard = cards.find((card) => card.uniqueId === uniqueId);
 
         if (firstCard.id === secondCard.id) {
-          // Match trouvé !
+          // Match trouvé - temps réduit à 300ms
           setTimeout(() => {
-            setMatched((prev) => [...prev, first, second]);
+            setMatched((prev) => [...prev, flipped[0], uniqueId]);
+            handleMatch();
             setFlipped([]);
             setIsChecking(false);
-            handleMatch();
 
             // Vérifier si le niveau est terminé
-            const newMatchedCount = matched.length + 2;
-            if (newMatchedCount === cards.length) {
-              setTimeout(() => {
-                const result = finishLevel();
-                // Attendre un peu avant d'initialiser le nouveau niveau
-                setTimeout(initializeGame, 1000);
-                // TODO: Afficher une animation de victoire ici
-              }, 500);
+            if (matched.length + 2 === cards.length) {
+              finishLevel();
             }
-          }, 500);
+          }, 300);
         } else {
-          // Pas de match
+          // Pas de match - temps réduit à 600ms
           setTimeout(() => {
             setFlipped([]);
             setIsChecking(false);
-          }, 1000);
+          }, 600);
         }
       }
     },
     [
+      cards,
       flipped,
       matched,
-      cards,
-      handleMatch,
-      incrementMoves,
-      finishLevel,
-      initializeGame,
       isChecking,
+      handleMatch,
+      finishLevel,
+      incrementMoves,
     ]
   );
 
