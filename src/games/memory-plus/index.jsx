@@ -152,9 +152,9 @@ export default function MemoryPlus() {
         </div>
 
         {/* Conteneur centré pour la grille */}
-        <div className="flex-1 flex flex-col items-center justify-center">
-          <div className="w-full max-w-xl aspect-[4/3]">
-            <div className="grid grid-cols-4 gap-2 h-full">
+        <div className="flex-1 min-h-0 flex items-center justify-center p-4">
+          <div className="h-full aspect-[4/3] min-h-0">
+            <div className="h-full grid grid-cols-4 gap-2">
               {cards.map(({ uniqueId, icon: Icon, color }) => (
                 <Card
                   key={uniqueId}
