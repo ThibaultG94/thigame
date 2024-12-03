@@ -1,8 +1,8 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { ThemeProvider } from './components/theme';
-import Home from './pages/Home';
-import Games from './pages/Games';
-import MemoryPlus from './games/memory-plus';
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { ThemeProvider } from "./components/theme";
+import Home from "./pages/Home";
+import Games from "./pages/Games";
+import MemoryPlus from "./games/memory-plus";
 
 // Pages temporaires pour les jeux (on peut les développer plus tard)
 const SpeedMatch = () => <h1 className="text-3xl font-bold">Speed Match</h1>;

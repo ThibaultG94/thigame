@@ -6,6 +6,7 @@ import { useMemoryGame } from "./hooks/useMemoryGame";
 import { Gamepad2, Swords, Brain, Timer } from "lucide-react";
 import { useEffect } from "react";
 import { useGameTimer } from "../hooks/useGameTimer";
+import MemoryGrid from "./components/MemoryGrid";
 
 const getLevelTimeLimit = (level) => {
   if (level <= 3) return 120;
@@ -152,46 +153,13 @@ export default function MemoryPlus() {
         </div>
 
         {/* Conteneur centré pour la grille */}
-        <div className="flex-1 min-h-0 flex items-center justify-center p-4">
-          <div className="h-full aspect-[4/3] min-h-0">
-            <div className="h-full w-full grid grid-cols-4 gap-2">
-              {cards.map(({ uniqueId, icon: Icon, color }) => (
-                <Card
-                  key={uniqueId}
-                  className={`
-                    aspect-square flex items-center justify-center 
-                    cursor-pointer transition-all duration-300 
-                    hover:scale-[1.02] ${
-                      flipped.includes(uniqueId) || matched.includes(uniqueId)
-                        ? "rotate-0 bg-primary shadow-lg"
-                        : "rotate-180 bg-secondary hover:bg-secondary/80"
-                    }
-                  `}
-                  onClick={() => handleCardClick(uniqueId)}
-                >
-                  <div
-                    className={`transition-all duration-300 ${
-                      flipped.includes(uniqueId) || matched.includes(uniqueId)
-                        ? "scale-100 rotate-0"
-                        : "scale-0 rotate-180"
-                    }`}
-                  >
-                    {(flipped.includes(uniqueId) ||
-                      matched.includes(uniqueId)) && (
-                      <Icon
-                        className={`w-8 h-8 md:w-10 md:h-10 transition-opacity duration-300 ${
-                          matched.includes(uniqueId)
-                            ? "opacity-50"
-                            : "opacity-100"
-                        }`}
-                        color={color}
-                      />
-                    )}
-                  </div>
-                </Card>
-              ))}
-            </div>
-          </div>
+        <div className="flex-1 min-h-0">
+          <MemoryGrid
+            cards={cards}
+            flipped={flipped}
+            matched={matched}
+            onCardClick={handleCardClick}
+          />
         </div>
       </div>
     </div>
