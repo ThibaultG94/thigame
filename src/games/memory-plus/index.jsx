@@ -42,10 +42,10 @@ export default function MemoryPlus() {
     if (hasLevelCompleted) {
       // Donner un peu de temps pour voir la dernière paire
       setTimeout(() => {
-        const levelResult = completeLevel();
+        completeLevel();
         // Le store met à jour currentLevel, ce qui déclenchera la réinitialisation
         // via l'effet dans useMemoryGame
-      }, 1000);
+      }, 100);
     }
   }, [hasLevelCompleted]);
 

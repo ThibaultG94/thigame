@@ -8,7 +8,7 @@ const MemoryGrid = ({ cards, flipped, matched, onCardClick }) => {
 
   return (
     <div className="w-full h-full flex items-center justify-center">
-      <div className="w-[min(100%,65vh)] aspect-square p-4">
+      <div className="w-[min(100%,60vh)] aspect-square p-4">
         <div
           className="grid w-full h-full gap-4"
           style={{
