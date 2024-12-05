@@ -1,5 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Navbar } from "@/components/Navbar";
 import { useMemoryStore } from "./store";
 import { useMemoryGame } from "./hooks/useMemoryGame";
@@ -7,32 +8,48 @@ import { Gamepad2, Swords, Brain, Timer } from "lucide-react";
 import { useEffect } from "react";
 import { useGameTimer } from "../hooks/useGameTimer";
 import MemoryGrid from "./components/MemoryGrid";
-
-const getLevelTimeLimit = (level) => {
-  if (level <= 3) return 120;
-  if (level <= 6) return 180;
-  return 240;
-};
+import { GAME_LEVELS } from "./constants";
 
 export default function MemoryPlus() {
+  // Récupération des états et actions depuis notre store global
   const {
     score,
     moves,
-    level,
+    currentLevel,
+    gameOver,
     resetGame,
     initializeGame,
     handleMatch,
-    finishLevel,
+    completeLevel,
+    handleTimeout,
   } = useMemoryStore();
 
+  // Configuration du niveau actuel depuis nos constantes
+  const levelConfig = GAME_LEVELS[currentLevel];
+
+  // État et actions pour la gestion des cartes
   const {
     cards,
     flipped,
     matched,
+    hasLevelCompleted,
     initializeGame: initBoard,
     handleCardClick,
   } = useMemoryGame();
 
+  // Effet pour gérer la complétion du niveau
+  useEffect(() => {
+    if (hasLevelCompleted) {
+      // Donner un peu de temps pour voir la dernière paire
+      setTimeout(() => {
+        const levelResult = completeLevel();
+        // Le store met à jour currentLevel, ce qui déclenchera la réinitialisation
+        // via l'effet dans useMemoryGame
+      }, 1000);
+    }
+  }, [hasLevelCompleted]);
+
+  // Gestion du timer avec notre hook personnalisé
   const {
     time,
     formattedTime,
@@ -40,42 +57,34 @@ export default function MemoryPlus() {
     start: startTimer,
     reset: resetTimer,
   } = useGameTimer({
-    initialTime: getLevelTimeLimit(level),
+    initialTime: levelConfig.timeLimit,
     countDown: true,
-    onTimeUp: () => {
-      // Gestion de la fin du temps
-      finishLevel(moves, cards.length / 2);
-      resetTimer();
-      initBoard();
-    },
+    onTimeUp: handleTimeout, // Game over quand le temps est écoulé
+    autoStart: false,
   });
 
-  // Initialisation du jeu
+  // Effet pour gérer l'initialisation du timer à chaque nouveau niveau
   useEffect(() => {
-    initializeGame();
-    initBoard();
+    resetTimer();
     startTimer();
-  }, [level]);
+  }, [currentLevel]);
 
   // Gestion du clic sur une carte
   const handleCardSelection = (uniqueId) => {
+    // Ne rien faire si le timer est arrêté
     if (!isRunning) return;
 
+    // Gérer le clic sur la carte
     handleCardClick(uniqueId);
 
-    // Si une paire est trouvée
+    // Si une paire a été trouvée (vérifié dans useMemoryGame)
     if (matched.length > 0) {
-      const timeSpent = getLevelTimeLimit(level) - time;
-      handleMatch(timeSpent);
-
-      // Si niveau terminé
-      if (matched.length === cards.length) {
-        const result = finishLevel(moves, cards.length / 2);
-        // TODO: Afficher animation de victoire avec result
-      }
+      // Calculer le score pour cette paire
+      handleMatch();
     }
   };
 
+  // Fonction de réinitialisation du jeu
   const handleReset = () => {
     resetGame();
     resetTimer();
@@ -83,29 +92,57 @@ export default function MemoryPlus() {
     startTimer();
   };
 
+  // Affichage de l'écran de game over
+  if (gameOver) {
+    return (
+      <div className="container h-screen flex items-center justify-center">
+        <Card className="w-full max-w-md p-6 text-center space-y-6">
+          <h2 className="text-2xl font-bold">Game Over!</h2>
+          <div className="space-y-2">
+            <p>Score final: {score}</p>
+            <p>Niveau atteint: {currentLevel + 1}</p>
+            <p>Nombre de coups: {moves}</p>
+          </div>
+          <Button onClick={handleReset} className="w-full">
+            Rejouer
+          </Button>
+        </Card>
+      </div>
+    );
+  }
+
+  // Affichage principal du jeu
   return (
     <div>
       <Navbar />
       <div className="container h-[calc(100vh-4rem)] py-4 flex flex-col">
-        <div className="text-center space-y-1 mb-4">
+        {/* En-tête avec informations sur le niveau */}
+        <div className="text-center space-y-2 mb-4">
           <h1 className="text-3xl font-bold text-primary">Memory Plus</h1>
+          <div className="flex items-center justify-center gap-2">
+            <Badge variant="outline">Niveau {currentLevel + 1}</Badge>
+            <Badge variant="outline">{levelConfig.name}</Badge>
+            <Badge variant="outline">{levelConfig.pairs * 2} cartes</Badge>
+          </div>
           <p className="text-sm text-muted-foreground">
-            Testez votre mémoire avec des icônes colorées
+            {levelConfig.description}
           </p>
         </div>
 
-        {/* Stats du jeu */}
+        {/* Statistiques du jeu */}
         <div className="grid grid-cols-5 gap-2 mb-4">
+          {/* Affichage du niveau */}
           <Card className="p-2">
             <div className="flex items-center justify-center gap-2">
               <Brain className="w-4 h-4 text-primary" />
               <div className="text-center">
                 <div className="text-xs text-muted-foreground">Niveau</div>
-                <div className="text-lg font-bold">{level}</div>
+                <div className="text-lg font-bold">{currentLevel + 1}</div>
               </div>
             </div>
           </Card>
 
+          {/* Affichage du score */}
           <Card className="p-2">
             <div className="flex items-center justify-center gap-2">
               <Gamepad2 className="w-4 h-4 text-primary" />
@@ -116,6 +153,7 @@ export default function MemoryPlus() {
             </div>
           </Card>
 
+          {/* Affichage du timer */}
           <Card className="p-2">
             <div className="flex items-center justify-center gap-2">
               <Timer className="w-4 h-4 text-primary" />
@@ -126,6 +164,7 @@ export default function MemoryPlus() {
             </div>
           </Card>
 
+          {/* Affichage des coups */}
           <Card className="p-2">
             <div className="flex items-center justify-center gap-2">
               <Swords className="w-4 h-4 text-primary" />
@@ -136,6 +175,7 @@ export default function MemoryPlus() {
             </div>
           </Card>
 
+          {/* Bouton de réinitialisation */}
           <Card className="p-2 flex items-center justify-center">
             <Button
               onClick={handleReset}
@@ -152,13 +192,13 @@ export default function MemoryPlus() {
           </Card>
         </div>
 
-        {/* Conteneur centré pour la grille */}
+        {/* Grille de jeu */}
         <div className="flex-1 min-h-0">
           <MemoryGrid
             cards={cards}
             flipped={flipped}
             matched={matched}
-            onCardClick={handleCardClick}
+            onCardClick={handleCardSelection}
           />
         </div>
       </div>

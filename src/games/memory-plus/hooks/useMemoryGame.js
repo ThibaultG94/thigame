@@ -1,86 +1,72 @@
 import { useState, useEffect, useCallback } from "react";
 import { useMemoryStore } from "../store";
-import { ICONS } from "../constants";
+import { ICONS, GAME_LEVELS } from "../constants";
 
 export function useMemoryGame() {
-  const level = useMemoryStore((state) => state.level);
-  const handleMatch = useMemoryStore((state) => state.handleMatch);
-  const finishLevel = useMemoryStore((state) => state.finishLevel);
-  const incrementMoves = useMemoryStore((state) => state.incrementMoves);
+  const currentLevel = useMemoryStore((state) => state.currentLevel);
+  const levelConfig = GAME_LEVELS[currentLevel];
 
   const [cards, setCards] = useState([]);
   const [flipped, setFlipped] = useState([]);
   const [matched, setMatched] = useState([]);
   const [isChecking, setIsChecking] = useState(false);
+  const [hasLevelCompleted, setHasLevelCompleted] = useState(false);
 
-  // Calculer le nombre de paires en fonction du niveau
-  const getNumPairs = useCallback((level) => {
-    // Augmenter progressivement le nombre de paires
-    if (level <= 3) return 4; // 8 cartes
-    if (level <= 6) return 6; // 12 cartes
-    return 8; // 16 cartes
-  }, []);
-
+  // Initialisation ou réinitialisation du jeu
   const initializeGame = useCallback(() => {
-    // Préparer les nouvelles cartes avant de les afficher
-    const numPairs = getNumPairs(level);
-    const selectedIcons = ICONS.slice(0, numPairs);
+    const gamePairs = levelConfig.pairs;
+    const selectedIcons = ICONS.slice(0, gamePairs);
+
     const gameCards = [...selectedIcons, ...selectedIcons]
       .sort(() => Math.random() - 0.5)
       .map((item, index) => ({
         ...item,
-        uniqueId: `${level}-${index}`, // Identifiant unique par niveau
-        isMatched: false,
+        uniqueId: `${currentLevel}-${index}`,
       }));
 
-    // Reset des états
+    setCards(gameCards);
     setFlipped([]);
     setMatched([]);
     setIsChecking(false);
+    setHasLevelCompleted(false);
+  }, [currentLevel, levelConfig.pairs]);
 
-    // Mettre à jour les cartes
-    setCards(gameCards);
-  }, [level, getNumPairs]);
-
+  // Effet pour réinitialiser le jeu quand le niveau change
   useEffect(() => {
     initializeGame();
-  }, [level, initializeGame]);
+  }, [currentLevel, initializeGame]);
 
   const handleCardClick = useCallback(
     (uniqueId) => {
       if (
         isChecking ||
         flipped.length === 2 ||
-        flipped.includes(uniqueId) ||
-        matched.includes(uniqueId)
+        matched.includes(uniqueId) ||
+        flipped.includes(uniqueId)
       ) {
         return;
       }
 
-      incrementMoves();
       setFlipped((prev) => [...prev, uniqueId]);
 
-      // Vérifier la paire si c'est la deuxième carte
       if (flipped.length === 1) {
         setIsChecking(true);
         const firstCard = cards.find((card) => card.uniqueId === flipped[0]);
         const secondCard = cards.find((card) => card.uniqueId === uniqueId);
 
         if (firstCard.id === secondCard.id) {
-          // Match trouvé - temps réduit à 300ms
           setTimeout(() => {
-            setMatched((prev) => [...prev, flipped[0], uniqueId]);
-            handleMatch();
+            const newMatched = [...matched, flipped[0], uniqueId];
+            setMatched(newMatched);
             setFlipped([]);
             setIsChecking(false);
 
-            // Vérifier si le niveau est terminé
-            if (matched.length + 2 === cards.length) {
-              finishLevel();
+            // Vérifier si le niveau est complété
+            if (newMatched.length === cards.length) {
+              setHasLevelCompleted(true);
             }
           }, 300);
         } else {
-          // Pas de match - temps réduit à 600ms
           setTimeout(() => {
             setFlipped([]);
             setIsChecking(false);
@@ -88,15 +74,7 @@ export function useMemoryGame() {
         }
       }
     },
-    [
-      cards,
-      flipped,
-      matched,
-      isChecking,
-      handleMatch,
-      finishLevel,
-      incrementMoves,
-    ]
+    [cards, flipped, matched, isChecking]
   );
 
   return {
@@ -104,6 +82,7 @@ export function useMemoryGame() {
     flipped,
     matched,
     isChecking,
+    hasLevelCompleted,
     initializeGame,
     handleCardClick,
   };
