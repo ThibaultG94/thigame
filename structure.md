@@ -6,108 +6,128 @@
 thigame-web/
 ├── node_modules/          # Dépendances du projet
 ├── public/               # Fichiers statiques
-│   ├── vite.svg         # Logo Vite
-│   └── react.svg        # Logo React
 ├── src/                 # Code source de l'application
 │   ├── assets/          # Images, fonts, et autres ressources
+│   │
 │   ├── components/      # Composants React réutilisables
-│   │   ├── layout/      # Composants de mise en page
-│   │   │   └── RootLayout.jsx
-│   │   ├── theme/      # Composants liés au thème
-│   │   │   └── index.jsx
-│   │   └── ui/         # Composants UI réutilisables
-│   │       ├── badge.jsx
-│   │       ├── button.jsx
-│   │       ├── card.jsx
-│   │       └── Navbar.jsx
+│   │   ├── layout/
+│   │   │   └── RootLayout.jsx    # Layout principal avec navigation
+│   │   ├── theme/
+│   │   │   └── index.jsx         # Gestion du thème
+│   │   └── ui/                   # Composants UI réutilisables
+│   │       ├── button/           # Chaque composant dans son dossier
+│   │       │   ├── Button.jsx    # Composant principal
+│   │       │   └── types.ts      # Types et interfaces
+│   │       ├── card/
+│   │       │   ├── Card.jsx
+│   │       │   └── types.ts
+│   │       └── badge/
+│   │           ├── Badge.jsx
+│   │           └── types.ts
+│   │
 │   ├── games/           # Logique et composants des jeux
-│   │   ├── components/  # Composants partagés entre les jeux
-│   │   │   ├── GameLayout.jsx    # Layout commun (score, timer, etc.)
-│   │   │   ├── ScoreDisplay.jsx  # Affichage du score
-│   │   │   └── Timer.jsx         # Composant timer réutilisable
-│   │   ├── hooks/      # Hooks partagés entre les jeux
-│   │   │   ├── useGameTimer.js   # Gestion du temps de jeu
-│   │   │   ├── useGameState.js   # État de base du jeu
-│   │   │   └── useLocalStorage.js # Persistance locale
-│   │   ├── memory-plus/ # Jeu Memory Plus
-│   │   │   ├── components/       # Composants spécifiques
-│   │   │   │   ├── Card.jsx     # Carte de mémoire
-│   │   │   │   └── Board.jsx    # Plateau de jeu
-│   │   │   ├── hooks/           # Hooks spécifiques
-│   │   │   │   └── useMemoryGame.js
-│   │   │   ├── store.js         # État local avec Zustand
-│   │   │   └── index.jsx        # Point d'entrée du jeu
-│   │   ├── speed-match/ # Jeu Speed Match
-│   │   │   ├── components/      # Structure identique à memory-plus
-│   │   │   ├── hooks/
-│   │   │   ├── store.js
-│   │   │   └── index.jsx
-│   │   └── puzzle-quest/# Jeu Puzzle Quest
-│   │       ├── components/      # Structure identique à memory-plus
-│   │       ├── hooks/
-│   │       ├── store.js
-│   │       └── index.jsx
-│   ├── hooks/          # Custom hooks globaux
-│   ├── pages/          # Pages de l'application
-│   │   ├── About.jsx   # Page À propos
-│   │   ├── Games.jsx   # Page de liste des jeux
-│   │   └── Home.jsx    # Page d'accueil
-│   ├── store/          # État global (Zustand)
-│   │   └── index.js    # Store principal
-│   ├── styles/         # Styles globaux et variables
-│   ├── utils/          # Fonctions utilitaires
-│   │   └── cn.js       # Utilitaire de classe CSS
-│   ├── App.jsx         # Composant racine React
-│   ├── index.css       # Styles CSS globaux
-│   └── main.jsx        # Point d'entrée React
-├── .gitignore          # Fichiers ignorés par Git
-├── eslint.config.js    # Configuration ESLint
-├── index.html          # Page HTML racine
-├── package.json        # Configuration npm
-├── postcss.config.js   # Configuration PostCSS
-├── README.md           # Documentation du projet
-├── structure.md        # Ce fichier
-├── tailwind.config.js  # Configuration Tailwind
-└── vite.config.js      # Configuration Vite
+│   │   ├── core/       # Nouveau dossier pour le code commun
+│   │   │   ├── factory/          # Pattern Factory
+│   │   │   │   ├── GameFactory.js
+│   │   │   │   └── types.ts
+│   │   │   ├── strategies/       # Pattern Strategy
+│   │   │   │   ├── ScoringStrategy.js
+│   │   │   │   ├── LevelStrategy.js
+│   │   │   │   └── types.ts
+│   │   │   ├── commands/         # Pattern Command
+│   │   │   │   ├── CommandManager.js
+│   │   │   │   ├── GameCommand.js
+│   │   │   │   └── types.ts
+│   │   │   ├── components/       # Composants partagés
+│   │   │   │   ├── GameContainer.jsx
+│   │   │   │   ├── ScoreDisplay.jsx
+│   │   │   │   └── GameTimer.jsx
+│   │   │   └── hooks/           # Hooks communs
+│   │   │       ├── useGameFactory.js
+│   │   │       ├── useGameMechanics.js
+│   │   │       └── useGameTimer.js
+│   │   │
+│   │   ├── memory-plus/         # Jeu Memory
+│   │   │   ├── components/
+│   │   │   │   ├── Card.jsx
+│   │   │   │   └── Grid.jsx
+│   │   │   ├── strategies/      # Stratégies spécifiques
+│   │   │   │   ├── MemoryScoringStrategy.js
+│   │   │   │   └── MemoryLevelStrategy.js
+│   │   │   ├── commands/        # Commandes spécifiques
+│   │   │   │   └── FlipCardCommand.js
+│   │   │   ├── store.js        # État local avec Zustand
+│   │   │   └── index.jsx       # Point d'entrée
+│   │   │
+│   │   ├── speed-match/        # Même structure que memory-plus
+│   │   └── puzzle-quest/       # Même structure que memory-plus
+│   │
+│   ├── hooks/                  # Hooks globaux
+│   │   └── useLocalStorage.js  # Persistance locale
+│   │
+│   ├── pages/                  # Pages de l'application
+│   │   ├── About.jsx
+│   │   ├── Games.jsx
+│   │   └── Home.jsx
+│   │
+│   ├── store/                  # État global (Zustand)
+│   │   ├── gameStore.js       # État des jeux
+│   │   └── themeStore.js      # Préférences de thème
+│   │
+│   ├── utils/                  # Fonctions utilitaires
+│   │   ├── patterns/          # Implémentations de patterns
+│   │   │   └── observer.js    # Pattern Observer
+│   │   └── helpers/           # Fonctions helpers
+│   │       └── className.js   # Utilitaire de classe CSS
+│   │
+│   ├── App.jsx                # Composant racine
+│   └── main.jsx              # Point d'entrée React
+│
+├── index.html
+└── vite.config.js
 ```
 
-## Description des Dossiers Clés
+## Points clés de la restructuration
 
-### `/games`
+### Composants UI
 
-Organisation standardisée pour tous les jeux :
+Les composants UI sont maintenant organisés par dossier plutôt qu'en fichiers isolés, permettant d'ajouter facilement des sous-composants, types et tests. Seuls les composants réellement utilisés sont conservés.
 
-- `components/` : Composants partagés entre tous les jeux
-- `hooks/` : Hooks réutilisables pour tous les jeux
-- Chaque jeu (memory-plus, speed-match, puzzle-quest) suit la même structure :
-  - `components/` : Composants spécifiques au jeu
-  - `hooks/` : Hooks spécifiques au jeu
-  - `store.js` : État local avec Zustand
-  - `constants.js` : Constantes, configurations et assets du jeu
-  - `index.jsx` : Point d'entrée du jeu
+### Pattern Factory (/games/core/factory)
 
-### `/components`
+Standardise la création des jeux tout en permettant des implémentations spécifiques. Chaque jeu implémente une interface commune tout en gardant sa propre logique.
 
-- `layout/` : Structures de mise en page
-- `theme/` : Gestion du thème (clair/sombre)
-- `ui/` : Composants d'interface utilisateur
+### Pattern Strategy (/games/core/strategies)
 
-### `/pages`
+Permet de définir différentes stratégies pour :
 
-Pages principales de l'application :
+- Le calcul des scores
+- La progression des niveaux
+- Les règles de jeu
 
-- `About.jsx` : Présentation et FAQ
-- `Games.jsx` : Liste et filtres des jeux
-- `Home.jsx` : Page d'accueil
+### Pattern Command (/games/core/commands)
 
-### `/store`
+Gère l'historique des actions et permet :
 
-Gestion de l'état global avec Zustand :
+- L'annulation (undo)
+- Le replay des parties
+- L'enregistrement des actions
 
-- Thème
-- Préférences utilisateur
-- Scores globaux
+### Organisation des jeux
 
-### `/utils`
+Chaque jeu suit la même structure avec :
 
-Fonctions utilitaires, notamment pour la gestion des classes CSS avec Tailwind.
+- Ses propres composants
+- Ses stratégies spécifiques
+- Ses commandes personnalisées
+- Son store local
+
+### État global
+
+Séparé en stores distincts pour :
+
+- Les données des jeux
+- Les préférences de thème
+- Les scores globaux (à venir)
+
+Cette structure permet une meilleure séparation des responsabilités et facilite l'ajout de nouveaux jeux ou fonctionnalités.
