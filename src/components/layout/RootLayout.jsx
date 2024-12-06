@@ -1,89 +1,146 @@
-import React, { useState } from 'react';
-import { Link, Outlet } from 'react-router-dom';
-import { Gamepad2, Trophy, User, Menu, X, Home } from 'lucide-react';
-import { cn } from '@/utils/cn';
+import { useState, useEffect } from "react";
+import { Link, useNavigate, useLocation, Outlet } from "react-router-dom";
+import {
+  Gamepad2,
+  Home,
+  Trophy,
+  User,
+  Menu,
+  X,
+  Settings,
+  LayoutGrid,
+} from "lucide-react";
+import { ThemeToggle } from "@/components/theme";
+import { cn } from "@/utils/cn";
+import { Button } from "@/components/ui/button";
 
 const RootLayout = () => {
+  // État pour la gestion de la sidebar et de la navigation mobile
   const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
 
+  // Fermeture automatique de la sidebar sur mobile lors des changements de route
+  useEffect(() => {
+    if (window.innerWidth < 768) {
+      setSidebarOpen(false);
+    }
+  }, [location]);
+
+  // Configuration centralisée de la navigation
   const navigation = [
-    { name: 'Accueil', to: '/', icon: Home },
-    { name: 'Jeux', to: '/games', icon: Gamepad2 },
-    { name: 'Classements', to: '/leaderboard', icon: Trophy },
-    { name: 'Profil', to: '/profile', icon: User },
+    {
+      name: "Accueil",
+      to: "/",
+      icon: Home,
+      description: "Retour à l'accueil",
+    },
+    {
+      name: "Jeux",
+      to: "/games",
+      icon: LayoutGrid,
+      description: "Découvrir tous les jeux",
+    },
+    {
+      name: "Classements",
+      to: "/leaderboard",
+      icon: Trophy,
+      description: "Voir les meilleurs scores",
+    },
+    {
+      name: "À propos",
+      to: "/about",
+      icon: User,
+      description: "En savoir plus",
+    },
   ];
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Sidebar pour mobile */}
+      {/* Header principal - toujours visible */}
+      <header className="fixed top-0 z-50 w-full h-16 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container h-full flex items-center justify-between">
+          {/* Logo et titre */}
+          <div className="flex items-center gap-2">
+            {/* Bouton menu sur mobile uniquement */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden"
+              onClick={() => setSidebarOpen(!isSidebarOpen)}
+            >
+              {isSidebarOpen ? <X /> : <Menu />}
+            </Button>
+
+            <Link to="/" className="flex items-center gap-2">
+              <Gamepad2 className="h-8 w-8 text-primary" />
+              <span className="font-bold text-xl">ThiGame</span>
+            </Link>
+          </div>
+
+          {/* Navigation sur desktop */}
+          <div className="hidden md:flex items-center gap-6">
+            {navigation.map((item) => (
+              <Button
+                key={item.to}
+                variant="ghost"
+                className="text-base"
+                onClick={() => navigate(item.to)}
+              >
+                {item.name}
+              </Button>
+            ))}
+          </div>
+
+          {/* Bouton thème toujours visible */}
+          <ThemeToggle />
+        </div>
+      </header>
+
+      {/* Overlay mobile - s'affiche quand la sidebar est ouverte */}
       <div
         className={cn(
-          "fixed inset-0 z-50 bg-background/80 backdrop-blur-sm lg:hidden",
+          "fixed inset-0 z-40 bg-background/80 backdrop-blur-sm md:hidden",
           isSidebarOpen ? "block" : "hidden"
         )}
         onClick={() => setSidebarOpen(false)}
       />
 
-      {/* Sidebar */}
-      <aside
+      {/* Menu mobile */}
+      <div
         className={cn(
-          "fixed top-0 left-0 z-50 h-full w-72 border-r bg-background p-6 shadow-lg transition-transform duration-300 lg:transform-none",
-          isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+          "fixed top-16 left-0 right-0 z-40 bg-background border-b md:hidden",
+          "transform transition-transform duration-300 ease-in-out",
+          isSidebarOpen ? "translate-y-0" : "-translate-y-full"
         )}
       >
-        <div className="flex items-center justify-between mb-8">
-          <Link to="/" className="flex items-center space-x-2">
-            <Gamepad2 className="w-8 h-8 text-primary" />
-            <span className="text-2xl font-bold">ThiGame</span>
-          </Link>
-          <button
-            onClick={() => setSidebarOpen(false)}
-            className="lg:hidden"
-          >
-            <X className="w-6 h-6" />
-          </button>
-        </div>
-
-        <nav className="space-y-2">
+        <nav className="container py-4 space-y-2">
           {navigation.map((item) => {
             const Icon = item.icon;
             return (
-              <Link
-                key={item.name}
-                to={item.to}
-                className="flex items-center space-x-2 w-full p-3 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors"
+              <Button
+                key={item.to}
+                variant="ghost"
+                className="w-full justify-start gap-2"
+                onClick={() => {
+                  navigate(item.to);
+                  setSidebarOpen(false);
+                }}
               >
-                <Icon className="w-5 h-5" />
+                <Icon className="h-5 w-5" />
                 <span>{item.name}</span>
-              </Link>
+              </Button>
             );
           })}
         </nav>
-      </aside>
-
-      {/* Main content */}
-      <div className="lg:pl-72">
-        {/* Mobile header */}
-        <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 lg:hidden">
-          <div className="container flex h-14 items-center">
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="mr-2"
-            >
-              <Menu className="w-6 h-6" />
-            </button>
-            <Link to="/" className="flex items-center space-x-2">
-              <Gamepad2 className="w-6 h-6 text-primary" />
-              <span className="font-bold">ThiGame</span>
-            </Link>
-          </div>
-        </header>
-
-        {/* Page content */}
-        <main className="container p-6">
-          <Outlet />
-        </main>
       </div>
+
+      {/* Contenu principal */}
+      <main className="pt-16">
+        <div className="container py-6">
+          <Outlet />
+        </div>
+      </main>
     </div>
   );
 };

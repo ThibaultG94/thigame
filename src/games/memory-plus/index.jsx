@@ -1,7 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Navbar } from "@/components/Navbar";
 import { useMemoryStore } from "./store";
 import { useMemoryGame } from "./hooks/useMemoryGame";
 import { Gamepad2, Swords, Brain, Timer } from "lucide-react";
@@ -114,7 +113,6 @@ export default function MemoryPlus() {
   // Affichage principal du jeu
   return (
     <div>
-      <Navbar />
       <div className="container h-[calc(100vh-4rem)] py-4 flex flex-col">
         {/* En-tête avec informations sur le niveau */}
         <div className="text-center space-y-2 mb-4">
