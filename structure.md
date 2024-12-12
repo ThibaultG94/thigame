@@ -1,7 +1,5 @@
 # Structure du Projet ThiGame
 
-# Structure du Projet ThiGame
-
 ```
 thigame-web/
 ├── node_modules/
@@ -13,15 +11,36 @@ thigame-web/
 │   │   ├── theme/
 │   │   │   └── index.jsx
 │   │   └── ui/
-│   │       ├── button/
-│   │       │   ├── Button.jsx
-│   │       │   └── types.ts
-│   │       ├── card/
-│   │       │   ├── Card.jsx
-│   │       │   └── types.ts
-│   │       └── badge/
-│   │           ├── Badge.jsx
-│   │           └── types.ts
+│   │       ├── core/
+│   │       │   ├── button/
+│   │       │   │   ├── Button.jsx
+│   │       │   │   └── types.ts
+│   │       │   ├── card/
+│   │       │   │   ├── Card.jsx
+│   │       │   │   └── types.ts
+│   │       │   └── badge/
+│   │       │       ├── Badge.jsx
+│   │       │       └── types.ts
+│   │       ├── feedback/
+│   │       │   ├── score-display/
+│   │       │   │   ├── ScoreDisplay.jsx
+│   │       │   │   └── types.ts
+│   │       │   └── timer-display/
+│   │       │       ├── TimerDisplay.jsx
+│   │       │       └── types.ts
+│   │       ├── game/
+│   │       │   ├── grid/
+│   │       │   │   ├── GameGrid.jsx
+│   │       │   │   ├── GridStrategy.ts
+│   │       │   │   └── types.ts
+│   │       │   └── stats/
+│   │       │       ├── StatsCard.jsx
+│   │       │       └── types.ts
+│   │       └── layout/
+│   │           ├── flex-container/
+│   │           │   └── FlexContainer.jsx
+│   │           └── grid-container/
+│   │               └── GridContainer.jsx
 │   │
 │   ├── games/
 │   │   ├── core/

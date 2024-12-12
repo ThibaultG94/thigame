@@ -15,25 +15,31 @@
 
 ### En cours
 
-- Restructuration de l'architecture pour plus de maintenabilité
-- Réorganisation des composants UI
+- Nouvelle architecture des composants UI
 - Implémentation des patterns de conception
+- Migration des composants existants vers la nouvelle architecture
+- Développement des composants génériques
 
 ## Prochaines Étapes
 
-### 1. Réorganisation Immédiate
+### 1. Réorganisation UI (En cours)
 
-- [x] Nettoyer structure.md (garder uniquement l'arborescence)
-- [x] Créer architecture.md (documentation technique)
+- [x] Nettoyer structure.md
+- [x] Créer architecture.md
 - [ ] Réorganiser les composants UI :
-  - [ ] Identifier les cas d'utilisation précis
-  - [ ] Créer la nouvelle structure par dossiers
+  - [x] Identifier les cas d'utilisation précis
+  - [x] Créer la nouvelle structure par dossiers
+  - [ ] Implémenter les stratégies de layout
   - [ ] Migrer les composants existants
+  - [ ] Créer les nouveaux composants génériques
 
 ### 2. Implémentation des Patterns
 
 - [ ] Mettre en place le Pattern Factory pour les jeux
-- [ ] Implémenter le Pattern Strategy pour les règles de jeu
+- [ ] Implémenter le Pattern Strategy pour :
+  - [ ] Règles de jeu
+  - [x] Layouts de grille
+  - [ ] Systèmes de score
 - [ ] Ajouter le Pattern Command pour l'historique
 
 ### 3. Développement des Fonctionnalités
@@ -41,3 +47,9 @@
 - [ ] Compléter le système de scores
 - [ ] Ajouter le système de replay
 - [ ] Préparer la structure pour les nouveaux jeux
+
+### 4. Tests et Documentation
+
+- [ ] Mettre en place les tests unitaires pour les nouveaux composants
+- [ ] Documenter l'utilisation des nouveaux patterns
+- [ ] Créer des exemples d'utilisation

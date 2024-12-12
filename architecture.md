@@ -87,11 +87,41 @@ class FlipCardCommand implements GameCommand {
 }
 ```
 
+### 4. Pattern Strategy (Layout)
+
+Le Pattern Strategy est également utilisé pour la gestion des layouts de jeu :
+
+```typescript
+interface GridStrategy {
+  calculateLayout(items: number): LayoutConfig;
+  getItemSize(containerSize: number): string;
+}
+
+class SquareGridStrategy implements GridStrategy {
+  calculateLayout(items: number) {
+    const columns = Math.ceil(Math.sqrt(items));
+    const rows = Math.ceil(items / columns);
+    return { columns, rows };
+  }
+
+  getItemSize(containerSize: number) {
+    return "aspect-square";
+  }
+}
+```
+
 ## Architecture des Composants UI
 
 ### Philosophie
 
-Nos composants UI suivent une approche composable et réutilisable. Chaque composant :
+Nos composants UI suivent une approche composable et réutilisable, organisée en couches :
+
+- Core : Composants de base
+- Feedback : Composants d'affichage d'information
+- Game : Composants spécifiques aux jeux
+- Layout : Composants de structure
+
+Chaque composant :
 
 - A une responsabilité unique
 - Est hautement configurable via des props
@@ -103,7 +133,7 @@ Nos composants UI suivent une approche composable et réutilisable. Chaque compo
 #### 1. Button
 
 ```typescript
-// components/ui/button/Button.tsx
+// components/ui/core/button/types.ts
 type ButtonVariant = "default" | "primary" | "secondary" | "ghost";
 type ButtonSize = "sm" | "md" | "lg";
 
@@ -114,17 +144,10 @@ interface ButtonProps {
 }
 ```
 
-**Cas d'utilisation** :
-
-- Actions principales (démarrer un jeu, valider)
-- Actions secondaires (retour, annulation)
-- Navigation (menu, changement de page)
-- Contrôles de jeu (pause, reprise)
-
 #### 2. Card
 
 ```typescript
-// components/ui/card/Card.tsx
+// components/ui/core/card/types.ts
 interface CardProps {
   variant?: "default" | "interactive";
   padding?: "none" | "normal" | "large";
@@ -132,29 +155,17 @@ interface CardProps {
 }
 ```
 
-**Cas d'utilisation** :
-
-- Affichage des jeux dans la galerie
-- Cartes de jeu Memory
-- Conteneurs de score
-- Panneaux d'information
-
-#### 3. Badge
+#### 3. Grid
 
 ```typescript
-// components/ui/badge/Badge.tsx
-interface BadgeProps {
-  variant?: "default" | "success" | "warning" | "error";
-  // ... autres props
+// components/ui/game/grid/types.ts
+interface GridProps<T> {
+  items: T[];
+  strategy?: GridStrategy;
+  renderItem: (item: T, index: number) => React.ReactNode;
+  className?: string;
 }
 ```
-
-**Cas d'utilisation** :
-
-- Indicateurs de niveau
-- Statut de jeu (en cours, terminé)
-- Difficulté des jeux
-- Accomplissements
 
 ## Gestion de l'État
 
@@ -174,22 +185,7 @@ Nous utilisons Zustand pour la gestion d'état, avec une séparation claire des 
 
 ### État Local des Jeux
 
-Chaque jeu maintient son propre état local via Zustand :
-
-```typescript
-// games/memory-plus/store.ts
-interface MemoryState {
-  cards: Card[];
-  flipped: string[];
-  matched: string[];
-  score: number;
-  // ... autres états
-}
-
-const useMemoryStore = create<MemoryState>((set) => ({
-  // ... implémentation
-}));
-```
+Chaque jeu maintient son propre état local via Zustand.
 
 ## Hooks Personnalisés
 
@@ -202,14 +198,6 @@ const useMemoryStore = create<MemoryState>((set) => ({
 ### Hooks Spécifiques aux Jeux
 
 Chaque jeu peut avoir ses propres hooks pour des mécaniques spécifiques.
-
-## Routes et Navigation
-
-La navigation est gérée via React Router avec une structure hiérarchique :
-
-- Route principale avec RootLayout
-- Routes de jeux imbriquées
-- Gestion du responsive via le layout
 
 ## Prochaines Évolutions
 
