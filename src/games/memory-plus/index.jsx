@@ -11,12 +11,13 @@ import {
   RotateCcw,
   Repeat,
 } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useGameTimer } from "../hooks/useGameTimer";
 import MemoryGrid from "./components/MemoryGrid";
-import { GAME_LEVELS } from "./constants";
+import { GAME_LEVELS, SCORING_CONFIG } from "./constants";
 import TimerDisplay from "../../components/ui/feedback/timer-display/TimerDisplay";
 import StatsCard from "../../components/ui/game/stats/StatCard";
+import ScoreDisplay from "../../components/ui/feedback/score-display/ScoreDisplay";
 
 export default function MemoryPlus() {
   // Récupération des états et actions depuis notre store global
@@ -45,6 +46,19 @@ export default function MemoryPlus() {
     handleCardClick,
   } = useMemoryGame();
 
+  // Ajout du suivi du score précédent pour les animations
+  const [previousScore, setPreviousScore] = useState(score);
+
+  // Effet pour mettre à jour le score précédent
+  useEffect(() => {
+    // On attend un peu pour que l'animation actuelle se termine
+    const timeoutId = setTimeout(() => {
+      setPreviousScore(score);
+    }, 1000);
+
+    return () => clearTimeout(timeoutId);
+  }, [score]);
+
   // Effet pour gérer la complétion du niveau
   useEffect(() => {
     if (hasLevelCompleted) {
@@ -56,6 +70,31 @@ export default function MemoryPlus() {
       }, 100);
     }
   }, [hasLevelCompleted]);
+
+  // Construction des bonus actifs pour l'affichage
+  const getCurrentBonuses = () => {
+    const bonuses = [];
+    const levelConfig = GAME_LEVELS[currentLevel];
+
+    // Bonus de niveau
+    bonuses.push({
+      type: "level",
+      multiplier: 1 + currentLevel * SCORING_CONFIG.levelMultiplier,
+      message: `Bonus niveau ${currentLevel + 1}`,
+    });
+
+    // Bonus de temps si présent
+    const timeRatio = time / levelConfig.timeLimit;
+    if (timeRatio > SCORING_CONFIG.timeBonus.good.threshold) {
+      bonuses.push({
+        type: "time",
+        multiplier: SCORING_CONFIG.timeBonus.good.multiplier,
+        message: SCORING_CONFIG.timeBonus.good.message,
+      });
+    }
+
+    return bonuses;
+  };
 
   // Gestion du timer avec notre hook personnalisé
   const {
@@ -140,20 +179,27 @@ export default function MemoryPlus() {
         <div className="grid grid-cols-5 gap-2 mb-4">
           {/* Affichage du niveau */}
           <StatsCard icon={Brain} label="Niveau" value={currentLevel + 1} />
-
           {/* Affichage du score */}
-          <StatsCard icon={Gamepad2} label="Score" value={score} />
-
+          <StatsCard
+            icon={Gamepad2}
+            label="Score"
+            value={
+              <ScoreDisplay
+                score={score}
+                previousScore={previousScore}
+                variant="compact"
+                showDelta={true}
+              />
+            }
+          />
           {/* Affichage du timer */}
           <StatsCard
             icon={Timer}
             label="Temps"
             value={<TimerDisplay time={time} countDown={true} />}
           />
-
           {/* Affichage des coups */}
           <StatsCard icon={Swords} label="Coups" value={moves} />
-
           {/* Bouton de réinitialisation */}
           <StatsCard
             icon={Repeat}

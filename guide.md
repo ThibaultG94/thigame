@@ -1,55 +1,99 @@
 # Guide du Projet ThiGame
 
-## État Actuel (12/12/2024)
+## État Actuel (13/12/2024)
 
 ### Ce qui est fait
 
 - Structure de base React + Vite
 - Système de navigation avec React Router
 - Système de thème (light/dark)
+- Composants UI de base :
+  - TimerDisplay (complet)
+  - StatsCard (complet)
+  - ScoreDisplay (complet)
+  - Card, Button, Badge (basiques)
 - Premier jeu (Memory Plus) implémenté avec :
-  - Logique de base
-  - Gestion des scores
+  - Logique de base du jeu
   - Timer
   - Niveaux progressifs
 
 ### En cours
 
 - Nouvelle architecture des composants UI
+- Système de score et bonus à affiner
 - Implémentation des patterns de conception
 - Migration des composants existants vers la nouvelle architecture
-- Développement des composants génériques
 
-## Prochaines Étapes
+### Problèmes identifiés
 
-### 1. Réorganisation UI (En cours)
+#### Système de Score à Revoir
 
-- [x] Nettoyer structure.md
-- [x] Créer architecture.md
-- [ ] Réorganiser les composants UI :
-  - [x] Identifier les cas d'utilisation précis
-  - [x] Créer la nouvelle structure par dossiers
-  - [ ] Implémenter les stratégies de layout
-  - [ ] Migrer les composants existants
-  - [ ] Créer les nouveaux composants génériques
+Le système actuel présente plusieurs limitations :
 
-### 2. Implémentation des Patterns
+1. Manque de clarté dans le calcul des scores
+2. Bonus et multiplicateurs pas assez intuitifs
+3. Feedback visuel insuffisant lors des gains de points
+4. Besoin d'une meilleure gestion des combos et des streaks
 
-- [ ] Mettre en place le Pattern Factory pour les jeux
-- [ ] Implémenter le Pattern Strategy pour :
-  - [ ] Règles de jeu
-  - [x] Layouts de grille
-  - [ ] Systèmes de score
-- [ ] Ajouter le Pattern Command pour l'historique
+## Prochaines Étapes (par ordre de priorité)
 
-### 3. Développement des Fonctionnalités
+### 1. Refonte du Système de Score
 
-- [ ] Compléter le système de scores
-- [ ] Ajouter le système de replay
-- [ ] Préparer la structure pour les nouveaux jeux
+- [ ] Définir une formule de score claire et équilibrée
+- [ ] Implémenter un système de combo
+- [ ] Ajouter des bonus spéciaux pour les performances exceptionnelles
+- [ ] Améliorer le feedback visuel des gains de points
+- [ ] Documenter la logique de scoring dans constants.js
 
-### 4. Tests et Documentation
+### 2. Finalisation des Composants UI
 
-- [ ] Mettre en place les tests unitaires pour les nouveaux composants
-- [ ] Documenter l'utilisation des nouveaux patterns
-- [ ] Créer des exemples d'utilisation
+- [ ] GameGrid : composant générique pour les grilles de jeu
+- [ ] GameControls : composant pour les contrôles de jeu
+- [ ] GameStats : regroupement cohérent des statistiques
+- [ ] GameOverlay : pour les messages et animations
+
+### 3. Patterns et Architecture
+
+- [ ] Pattern Factory pour les jeux
+- [ ] Pattern Strategy pour les layouts et règles
+- [ ] Pattern Command pour l'historique
+- [ ] Meilleure séparation des responsabilités dans les stores
+
+### 4. Nouveaux Jeux
+
+- [ ] Speed Match : conception et développement
+- [ ] Puzzle Quest : conception initiale
+
+### 5. Tests et Documentation
+
+- [ ] Tests unitaires pour les composants
+- [ ] Tests d'intégration pour les jeux
+- [ ] Documentation technique complète
+- [ ] Guide de contribution
+
+## Organisation du Développement
+
+### Phase 1 : Fondations (En cours)
+
+1. ✓ Composants UI de base
+2. → Système de score robuste
+3. → Architecture évolutive
+
+### Phase 2 : Expansion
+
+1. Nouveaux composants spécialisés
+2. Implémentation des patterns
+3. Tests automatisés
+
+### Phase 3 : Nouveaux Jeux
+
+1. Speed Match
+2. Puzzle Quest
+3. Système de progression global
+
+## Notes Importantes
+
+- Maintenir la cohérence visuelle entre les composants
+- Privilégier la réutilisabilité
+- Documenter au fur et à mesure
+- Tester chaque nouvelle fonctionnalité
