@@ -8,6 +8,7 @@ import { useEffect } from "react";
 import { useGameTimer } from "../hooks/useGameTimer";
 import MemoryGrid from "./components/MemoryGrid";
 import { GAME_LEVELS } from "./constants";
+import TimerDisplay from "../../components/ui/feedback/timer-display/TimerDisplay";
 
 export default function MemoryPlus() {
   // Récupération des états et actions depuis notre store global
@@ -157,7 +158,12 @@ export default function MemoryPlus() {
               <Timer className="w-4 h-4 text-primary" />
               <div className="text-center">
                 <div className="text-xs text-muted-foreground">Temps</div>
-                <div className="text-lg font-bold">{formattedTime}</div>
+                <TimerDisplay
+                  time={time}
+                  countDown={true}
+                  variant="default"
+                  className="text-lg font-bold"
+                />
               </div>
             </div>
           </Card>
