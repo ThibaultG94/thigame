@@ -3,12 +3,20 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useMemoryStore } from "./store";
 import { useMemoryGame } from "./hooks/useMemoryGame";
-import { Gamepad2, Swords, Brain, Timer } from "lucide-react";
+import {
+  Gamepad2,
+  Swords,
+  Brain,
+  Timer,
+  RotateCcw,
+  Repeat,
+} from "lucide-react";
 import { useEffect } from "react";
 import { useGameTimer } from "../hooks/useGameTimer";
 import MemoryGrid from "./components/MemoryGrid";
 import { GAME_LEVELS } from "./constants";
 import TimerDisplay from "../../components/ui/feedback/timer-display/TimerDisplay";
+import StatsCard from "../../components/ui/game/stats/StatCard";
 
 export default function MemoryPlus() {
   // Récupération des états et actions depuis notre store global
@@ -131,69 +139,33 @@ export default function MemoryPlus() {
         {/* Statistiques du jeu */}
         <div className="grid grid-cols-5 gap-2 mb-4">
           {/* Affichage du niveau */}
-          <Card className="p-2">
-            <div className="flex items-center justify-center gap-2">
-              <Brain className="w-4 h-4 text-primary" />
-              <div className="text-center">
-                <div className="text-xs text-muted-foreground">Niveau</div>
-                <div className="text-lg font-bold">{currentLevel + 1}</div>
-              </div>
-            </div>
-          </Card>
+          <StatsCard icon={Brain} label="Niveau" value={currentLevel + 1} />
 
           {/* Affichage du score */}
-          <Card className="p-2">
-            <div className="flex items-center justify-center gap-2">
-              <Gamepad2 className="w-4 h-4 text-primary" />
-              <div className="text-center">
-                <div className="text-xs text-muted-foreground">Score</div>
-                <div className="text-lg font-bold">{score}</div>
-              </div>
-            </div>
-          </Card>
+          <StatsCard icon={Gamepad2} label="Score" value={score} />
 
           {/* Affichage du timer */}
-          <Card className="p-2">
-            <div className="flex items-center justify-center gap-2">
-              <Timer className="w-4 h-4 text-primary" />
-              <div className="text-center">
-                <div className="text-xs text-muted-foreground">Temps</div>
-                <TimerDisplay
-                  time={time}
-                  countDown={true}
-                  variant="default"
-                  className="text-lg font-bold"
-                />
-              </div>
-            </div>
-          </Card>
+          <StatsCard
+            icon={Timer}
+            label="Temps"
+            value={<TimerDisplay time={time} countDown={true} />}
+          />
 
           {/* Affichage des coups */}
-          <Card className="p-2">
-            <div className="flex items-center justify-center gap-2">
-              <Swords className="w-4 h-4 text-primary" />
-              <div className="text-center">
-                <div className="text-xs text-muted-foreground">Coups</div>
-                <div className="text-lg font-bold">{moves}</div>
-              </div>
-            </div>
-          </Card>
+          <StatsCard icon={Swords} label="Coups" value={moves} />
 
           {/* Bouton de réinitialisation */}
-          <Card className="p-2 flex items-center justify-center">
-            <Button
-              onClick={handleReset}
-              variant="outline"
-              className="flex items-center justify-center gap-2"
-            >
-              <div className="w-full h-full flex items-center gap-2">
-                <Timer className="w-4 h-4" />
-                <div className="text-center">
-                  <div className="text-xs">Recommencer</div>
-                </div>
+          <StatsCard
+            icon={Repeat}
+            label="Recommencer"
+            value={
+              <div className="flex justify-center items-center pt-2">
+                <RotateCcw className="w-4 h-4" />
               </div>
-            </Button>
-          </Card>
+            }
+            onClick={handleReset}
+            variant="outline"
+          />
         </div>
 
         {/* Grille de jeu */}
