@@ -21,12 +21,13 @@ import StatsCard from "../../components/ui/game/stats/StatCard";
 import ScoreDisplay from "../../components/ui/feedback/score-display/ScoreDisplay";
 
 export default function MemoryPlus() {
-  // Récupération des états et actions depuis notre store global
+  // Récupération des états et actions du store global
   const {
     score,
     moves,
     currentLevel,
     gameOver,
+    activeBonus,
     resetGame,
     initializeGame,
     handleMatch,
@@ -34,55 +35,13 @@ export default function MemoryPlus() {
     handleTimeout,
   } = useMemoryStore();
 
-  // Configuration du niveau actuel depuis nos constantes
+  // Configuration du niveau actuel
   const levelConfig = GAME_LEVELS[currentLevel];
 
-  // État et actions pour la gestion des cartes
-  const {
-    cards,
-    flipped,
-    matched,
-    hasLevelCompleted,
-    initializeGame: initBoard,
-    handleCardClick,
-  } = useMemoryGame();
-
-  // État pour gérer l'animation du score
+  // État local pour l'animation du score
   const [previousScore, setPreviousScore] = useState(score);
 
-  // État pour gérer l'affichage des bonus
-  const [activeBonus, setActiveBonus] = useState(null);
-
-  // Mise à jour du score précédent pour les animations
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      setPreviousScore(score);
-    }, 1000);
-
-    return () => clearTimeout(timeoutId);
-  }, [score]);
-
-  // Gestion de la complétion du niveau
-  useEffect(() => {
-    if (hasLevelCompleted) {
-      // Le niveau est terminé, on calcule les bonus
-      const { hasNextLevel, bonuses, totalScore } = completeLevel();
-
-      // Affichage du message de réussite avec les bonus
-      setActiveBonus({
-        bonuses,
-        totalScore,
-        message: hasNextLevel ? "Niveau terminé !" : "Jeu terminé !",
-      });
-
-      // On nettoie le message après 2 secondes
-      setTimeout(() => {
-        setActiveBonus(null);
-      }, 2000);
-    }
-  }, [hasLevelCompleted, completeLevel]);
-
-  // Gestion du timer avec notre hook personnalisé
+  // Initialisation du timer - IMPORTANT: doit être défini avant son utilisation
   const {
     time,
     isRunning,
@@ -95,67 +54,69 @@ export default function MemoryPlus() {
     autoStart: false,
   });
 
-  // Réinitialisation du timer à chaque nouveau niveau
+  // Initialisation du jeu et récupération des états/actions liés aux cartes
+  const {
+    cards,
+    flipped,
+    matched,
+    hasLevelCompleted,
+    initializeGame: initBoard,
+    handleCardClick,
+  } = useMemoryGame();
+
+  // Effet pour la mise à jour du score précédent (pour les animations)
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setPreviousScore(score);
+    }, 1000);
+    return () => clearTimeout(timeoutId);
+  }, [score]);
+
+  // Effet pour la détection de la fin d'un niveau et la transition
+  useEffect(() => {
+    if (hasLevelCompleted) {
+      const transitionTimer = setTimeout(() => {
+        const { hasNextLevel } = completeLevel();
+
+        if (hasNextLevel) {
+          initBoard();
+          resetTimer();
+          startTimer();
+        }
+      }, 1000); // Délai pour les animations
+
+      return () => clearTimeout(transitionTimer);
+    }
+  }, [hasLevelCompleted, completeLevel, initBoard, resetTimer, startTimer]);
+
+  // Effet pour la réinitialisation du timer à chaque changement de niveau
   useEffect(() => {
     resetTimer();
     startTimer();
   }, [currentLevel, resetTimer, startTimer]);
 
-  // Gestion du clic sur une carte
+  // Effet pour la détection des paires trouvées
+  useEffect(() => {
+    if (matched.length >= 2 && matched.length % 2 === 0) {
+      handleMatch();
+    }
+  }, [matched.length, handleMatch]);
+
+  // Gestionnaire pour le clic sur une carte
   const handleCardSelection = (uniqueId) => {
-    // Ne rien faire si le timer est arrêté
     if (!isRunning) return;
     handleCardClick(uniqueId);
   };
 
-  // Effet qui observe les changements dans matched
-  // Effet qui observe les changements dans matched
-  useEffect(() => {
-    if (matched.length >= 2 && matched.length % 2 === 0) {
-      // Une nouvelle paire a été trouvée !
-      const { score: matchScore, bonuses } = handleMatch();
-
-      setActiveBonus({
-        bonuses,
-        score: matchScore,
-        message: "Paire trouvée !",
-      });
-
-      // Vérification de la complétion du niveau
-      if (matched.length === cards.length) {
-        // On attend un peu que l'animation de la paire soit terminée
-        setTimeout(() => {
-          const {
-            hasNextLevel,
-            bonuses: levelBonuses,
-            totalScore,
-          } = completeLevel();
-
-          setActiveBonus({
-            bonuses: levelBonuses,
-            totalScore,
-            message: hasNextLevel ? "Niveau terminé !" : "Jeu terminé !",
-          });
-        }, 1000);
-      } else {
-        // Si le niveau n'est pas terminé, on nettoie juste le message de bonus
-        setTimeout(() => {
-          setActiveBonus(null);
-        }, 1500);
-      }
-    }
-  }, [matched.length, cards.length, handleMatch, completeLevel]);
-
-  // Fonction de réinitialisation du jeu
+  // Gestionnaire pour la réinitialisation du jeu
   const handleReset = () => {
     resetGame();
     resetTimer();
     initBoard();
     startTimer();
-    setActiveBonus(null);
   };
 
-  // Affichage de l'écran de game over
+  // Rendu de l'écran de fin de partie
   if (gameOver) {
     return (
       <div className="container h-screen flex items-center justify-center">
@@ -185,7 +146,7 @@ export default function MemoryPlus() {
     );
   }
 
-  // Affichage principal du jeu
+  // Rendu principal du jeu
   return (
     <div>
       <div className="container h-[calc(100vh-4rem)] py-4 flex flex-col">
@@ -214,7 +175,7 @@ export default function MemoryPlus() {
                 previousScore={previousScore}
                 variant="compact"
                 showDelta={true}
-                bonuses={activeBonus?.bonuses}
+                bonuses={activeBonus?.bonuses || []}
               />
             }
           />
@@ -241,21 +202,6 @@ export default function MemoryPlus() {
             onCardClick={handleCardSelection}
           />
         </div>
-
-        {/* Affichage des bonus (popup) */}
-        {activeBonus && (
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-            <Card className="p-4 text-center bg-primary/90 text-primary-foreground animate-in fade-in zoom-in duration-300">
-              <p className="text-lg font-bold">{activeBonus.message}</p>
-              <ScoreDisplay
-                score={activeBonus.score || score}
-                bonuses={activeBonus.bonuses}
-                variant="detailed"
-                className="mt-2"
-              />
-            </Card>
-          </div>
-        )}
       </div>
     </div>
   );

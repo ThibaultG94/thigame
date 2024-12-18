@@ -40,6 +40,12 @@ export function useMemoryGame() {
     initializeGame();
   }, [currentLevel, initializeGame]);
 
+  useEffect(() => {
+    if (matched.length === cards.length && cards.length > 0) {
+      setHasLevelCompleted(true);
+    }
+  }, [matched.length, cards.length]);
+
   // Gestion du clic sur une carte
   const handleCardClick = useCallback(
     (uniqueId) => {

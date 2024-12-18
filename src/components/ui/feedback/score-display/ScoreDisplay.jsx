@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 import { cn } from "@/utils/cn";
-import { Card } from "@/components/ui/card";
 
 /**
  * Composant d'affichage des scores avec animations et gestion des bonus
@@ -18,12 +17,30 @@ function ScoreDisplay({
   },
   className,
   showDelta = true,
-  onAnimationComplete,
 }) {
   // État pour l'animation du score
   const [displayedScore, setDisplayedScore] = useState(score);
   const [isAnimating, setIsAnimating] = useState(false);
   const animationRef = useRef(null);
+
+  // États pour gérer l'animation des bonus
+  const [visibleBonuses, setVisibleBonuses] = useState([]);
+  const [isShowingBonus, setIsShowingBonus] = useState(false);
+
+  // Gestion de l'animation des bonus
+  useEffect(() => {
+    if (bonuses.length > 0) {
+      setVisibleBonuses(bonuses);
+      setIsShowingBonus(true);
+
+      // Animation de disparition progressive des bonus
+      const timer = setTimeout(() => {
+        setIsShowingBonus(false);
+      }, 2000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [bonuses]);
 
   // Gestion de l'animation du score
   useEffect(() => {
@@ -39,7 +56,6 @@ function ScoreDisplay({
       const elapsed = currentTime - startTime;
       const progress = Math.min(elapsed / animationConfig.duration, 1);
 
-      // Fonction d'easing pour une animation plus naturelle
       const easeProgress = animationConfig.countUp
         ? easeOutCubic(progress)
         : progress;
@@ -52,7 +68,6 @@ function ScoreDisplay({
         animationRef.current = requestAnimationFrame(animate);
       } else {
         setIsAnimating(false);
-        onAnimationComplete?.();
       }
     };
 
@@ -63,18 +78,15 @@ function ScoreDisplay({
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [score, animationConfig, onAnimationComplete]);
+  }, [score, animationConfig]);
 
   // Calcul du delta pour l'affichage des variations
   const scoreDelta = score - (previousScore ?? score);
   const showPositiveDelta = scoreDelta > 0;
 
+  // Formatage pour l'accessibilité
   const getAriaLabel = () => {
-    if (scoreDelta === 0) {
-      // Score stable
-      return `Score actuel : ${score}`;
-    }
-    // Score qui change
+    if (scoreDelta === 0) return `Score actuel : ${score}`;
     return `Score actuel : ${score}, ${
       scoreDelta > 0 ? "augmentation" : "diminution"
     } de ${Math.abs(scoreDelta)}`;
@@ -82,13 +94,7 @@ function ScoreDisplay({
 
   return (
     <div
-      className={cn(
-        "relative", // On garde seulement les styles essentiels
-        variant === "compact" && "text-sm",
-        variant === "detailed" && "space-y-2",
-        className
-      )}
-      // ARIA pour l'accessibilité
+      className={cn("relative", className)}
       role="status"
       aria-live="polite"
       aria-atomic="true"
@@ -114,11 +120,27 @@ function ScoreDisplay({
           </span>
         )}
       </div>
-
-      {/* Affichage des bonus actifs */}
-      {variant === "detailed" && bonuses.length > 0 && (
-        <div className="space-y-1 text-sm text-muted-foreground">
-          {bonuses.map((bonus, index) => (
+      {/* Affichage flottant des bonus */}
+      {isShowingBonus && visibleBonuses.length > 0 && (
+        <div
+          className={cn(
+            "absolute -top-6 left-1/2 -translate-x-1/2",
+            "text-sm text-primary-foreground/80",
+            "transition-all duration-300",
+            "animate-in fade-in-0 slide-in-from-bottom-1"
+          )}
+        >
+          {visibleBonuses.map((bonus, index) => (
+            <span key={index} className="inline-block px-1">
+              {bonus.multiplier ? `×${bonus.multiplier}` : `+${bonus.amount}`}
+            </span>
+          ))}
+        </div>
+      )}
+      {/* Bonus détaillés (pour la variante detailed) */}
+      {variant === "detailed" && visibleBonuses.length > 0 && (
+        <div className="mt-2 space-y-1 text-sm text-muted-foreground">
+          {visibleBonuses.map((bonus, index) => (
             <div
               key={`${bonus.type}-${index}`}
               className="flex justify-between items-center"
