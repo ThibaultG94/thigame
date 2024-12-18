@@ -43,7 +43,6 @@ export function useMemoryGame() {
   // Gestion du clic sur une carte
   const handleCardClick = useCallback(
     (uniqueId) => {
-      // Vérification des conditions qui empêchent de retourner une carte
       if (
         isChecking ||
         flipped.length === 2 ||
@@ -53,36 +52,30 @@ export function useMemoryGame() {
         return;
       }
 
-      // On retourne la carte cliquée
       setFlipped((prev) => [...prev, uniqueId]);
 
-      // Si c'est la première carte du tour, on incrémente juste le compteur
       if (flipped.length === 0) {
         incrementMoves();
       }
 
-      // Si c'est la deuxième carte, on vérifie la paire
       if (flipped.length === 1) {
         setIsChecking(true);
 
         const firstCard = cards.find((card) => card.uniqueId === flipped[0]);
         const secondCard = cards.find((card) => card.uniqueId === uniqueId);
 
-        // Vérifiation si les cartes correspondent
         if (firstCard.id === secondCard.id) {
           setTimeout(() => {
-            const newMatched = [...matched, flipped[0], uniqueId];
-            setMatched(newMatched);
+            setMatched((prev) => [
+              ...prev,
+              firstCard.uniqueId,
+              secondCard.uniqueId,
+            ]);
             setFlipped([]);
             setIsChecking(false);
-
-            // Vérification de la completion du niveau
-            if (newMatched.length === cards.length) {
-              setHasLevelCompleted(true);
-            }
+            return { matched: true, cards: [firstCard, secondCard] }; // On retourne l'info de la paire trouvée
           }, 300);
         } else {
-          // Si les cartes ne correspondent pas
           setTimeout(() => {
             setFlipped([]);
             setIsChecking(false);
@@ -92,7 +85,6 @@ export function useMemoryGame() {
     },
     [cards, flipped, matched, isChecking, incrementMoves]
   );
-
   return {
     cards,
     flipped,

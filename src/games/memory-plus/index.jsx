@@ -10,11 +10,12 @@ import {
   Timer,
   RotateCcw,
   Repeat,
+  Trophy,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useGameTimer } from "../hooks/useGameTimer";
 import MemoryGrid from "./components/MemoryGrid";
-import { GAME_LEVELS, SCORING_CONFIG } from "./constants";
+import { GAME_LEVELS } from "./constants";
 import TimerDisplay from "../../components/ui/feedback/timer-display/TimerDisplay";
 import StatsCard from "../../components/ui/game/stats/StatCard";
 import ScoreDisplay from "../../components/ui/feedback/score-display/ScoreDisplay";
@@ -46,12 +47,14 @@ export default function MemoryPlus() {
     handleCardClick,
   } = useMemoryGame();
 
-  // Ajout du suivi du score précédent pour les animations
+  // État pour gérer l'animation du score
   const [previousScore, setPreviousScore] = useState(score);
 
-  // Effet pour mettre à jour le score précédent
+  // État pour gérer l'affichage des bonus
+  const [activeBonus, setActiveBonus] = useState(null);
+
+  // Mise à jour du score précédent pour les animations
   useEffect(() => {
-    // On attend un peu pour que l'animation actuelle se termine
     const timeoutId = setTimeout(() => {
       setPreviousScore(score);
     }, 1000);
@@ -59,77 +62,89 @@ export default function MemoryPlus() {
     return () => clearTimeout(timeoutId);
   }, [score]);
 
-  // Effet pour gérer la complétion du niveau
+  // Gestion de la complétion du niveau
   useEffect(() => {
     if (hasLevelCompleted) {
-      // Donner un peu de temps pour voir la dernière paire
-      setTimeout(() => {
-        completeLevel();
-        // Le store met à jour currentLevel, ce qui déclenchera la réinitialisation
-        // via l'effet dans useMemoryGame
-      }, 100);
-    }
-  }, [hasLevelCompleted]);
+      // Le niveau est terminé, on calcule les bonus
+      const { hasNextLevel, bonuses, totalScore } = completeLevel();
 
-  // Construction des bonus actifs pour l'affichage
-  const getCurrentBonuses = () => {
-    const bonuses = [];
-    const levelConfig = GAME_LEVELS[currentLevel];
-
-    // Bonus de niveau
-    bonuses.push({
-      type: "level",
-      multiplier: 1 + currentLevel * SCORING_CONFIG.levelMultiplier,
-      message: `Bonus niveau ${currentLevel + 1}`,
-    });
-
-    // Bonus de temps si présent
-    const timeRatio = time / levelConfig.timeLimit;
-    if (timeRatio > SCORING_CONFIG.timeBonus.good.threshold) {
-      bonuses.push({
-        type: "time",
-        multiplier: SCORING_CONFIG.timeBonus.good.multiplier,
-        message: SCORING_CONFIG.timeBonus.good.message,
+      // Affichage du message de réussite avec les bonus
+      setActiveBonus({
+        bonuses,
+        totalScore,
+        message: hasNextLevel ? "Niveau terminé !" : "Jeu terminé !",
       });
-    }
 
-    return bonuses;
-  };
+      // On nettoie le message après 2 secondes
+      setTimeout(() => {
+        setActiveBonus(null);
+      }, 2000);
+    }
+  }, [hasLevelCompleted, completeLevel]);
 
   // Gestion du timer avec notre hook personnalisé
   const {
     time,
-    formattedTime,
     isRunning,
     start: startTimer,
     reset: resetTimer,
   } = useGameTimer({
     initialTime: levelConfig.timeLimit,
     countDown: true,
-    onTimeUp: handleTimeout, // Game over quand le temps est écoulé
+    onTimeUp: handleTimeout,
     autoStart: false,
   });
 
-  // Effet pour gérer l'initialisation du timer à chaque nouveau niveau
+  // Réinitialisation du timer à chaque nouveau niveau
   useEffect(() => {
     resetTimer();
     startTimer();
-  }, [currentLevel]);
+  }, [currentLevel, resetTimer, startTimer]);
 
   // Gestion du clic sur une carte
   const handleCardSelection = (uniqueId) => {
     // Ne rien faire si le timer est arrêté
     if (!isRunning) return;
-
-    // Gérer le clic sur la carte
     handleCardClick(uniqueId);
-
-    // Si une paire a été trouvée (vérifié dans useMemoryGame)
-    if (matched.length > 0) {
-      // Calculer le score pour cette paire
-      handleMatch();
-    }
   };
+
+  // Effet qui observe les changements dans matched
+  // Effet qui observe les changements dans matched
+  useEffect(() => {
+    if (matched.length >= 2 && matched.length % 2 === 0) {
+      // Une nouvelle paire a été trouvée !
+      const { score: matchScore, bonuses } = handleMatch();
+
+      setActiveBonus({
+        bonuses,
+        score: matchScore,
+        message: "Paire trouvée !",
+      });
+
+      // Vérification de la complétion du niveau
+      if (matched.length === cards.length) {
+        // On attend un peu que l'animation de la paire soit terminée
+        setTimeout(() => {
+          const {
+            hasNextLevel,
+            bonuses: levelBonuses,
+            totalScore,
+          } = completeLevel();
+
+          setActiveBonus({
+            bonuses: levelBonuses,
+            totalScore,
+            message: hasNextLevel ? "Niveau terminé !" : "Jeu terminé !",
+          });
+        }, 1000);
+      } else {
+        // Si le niveau n'est pas terminé, on nettoie juste le message de bonus
+        setTimeout(() => {
+          setActiveBonus(null);
+        }, 1500);
+      }
+    }
+  }, [matched.length, cards.length, handleMatch, completeLevel]);
 
   // Fonction de réinitialisation du jeu
   const handleReset = () => {
@@ -137,6 +152,7 @@ export default function MemoryPlus() {
     resetTimer();
     initBoard();
     startTimer();
+    setActiveBonus(null);
   };
 
   // Affichage de l'écran de game over
@@ -144,11 +160,22 @@ export default function MemoryPlus() {
     return (
       <div className="container h-screen flex items-center justify-center">
         <Card className="w-full max-w-md p-6 text-center space-y-6">
-          <h2 className="text-2xl font-bold">Game Over!</h2>
-          <div className="space-y-2">
-            <p>Score final: {score}</p>
-            <p>Niveau atteint: {currentLevel + 1}</p>
-            <p>Nombre de coups: {moves}</p>
+          <div className="flex justify-center mb-4">
+            <Trophy className="w-16 h-16 text-primary" />
+          </div>
+          <h2 className="text-2xl font-bold">Partie terminée !</h2>
+          <div className="space-y-4">
+            <ScoreDisplay
+              score={score}
+              previousScore={0}
+              variant="detailed"
+              className="text-3xl"
+              showDelta={false}
+            />
+            <div className="text-muted-foreground">
+              <p>Niveau atteint : {currentLevel + 1}</p>
+              <p>Nombre de coups : {moves}</p>
+            </div>
           </div>
           <Button onClick={handleReset} className="w-full">
             Rejouer
@@ -177,9 +204,7 @@ export default function MemoryPlus() {
 
         {/* Statistiques du jeu */}
         <div className="grid grid-cols-5 gap-2 mb-4">
-          {/* Affichage du niveau */}
           <StatsCard icon={Brain} label="Niveau" value={currentLevel + 1} />
-          {/* Affichage du score */}
           <StatsCard
             icon={Gamepad2}
             label="Score"
@@ -189,28 +214,21 @@ export default function MemoryPlus() {
                 previousScore={previousScore}
                 variant="compact"
                 showDelta={true}
+                bonuses={activeBonus?.bonuses}
               />
             }
           />
-          {/* Affichage du timer */}
           <StatsCard
             icon={Timer}
             label="Temps"
             value={<TimerDisplay time={time} countDown={true} />}
           />
-          {/* Affichage des coups */}
           <StatsCard icon={Swords} label="Coups" value={moves} />
-          {/* Bouton de réinitialisation */}
           <StatsCard
             icon={Repeat}
             label="Recommencer"
-            value={
-              <div className="flex justify-center items-center pt-2">
-                <RotateCcw className="w-4 h-4" />
-              </div>
-            }
+            value={<RotateCcw className="w-4 h-4 mt-2" />}
             onClick={handleReset}
-            variant="outline"
           />
         </div>
 
@@ -223,6 +241,21 @@ export default function MemoryPlus() {
             onCardClick={handleCardSelection}
           />
         </div>
+
+        {/* Affichage des bonus (popup) */}
+        {activeBonus && (
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+            <Card className="p-4 text-center bg-primary/90 text-primary-foreground animate-in fade-in zoom-in duration-300">
+              <p className="text-lg font-bold">{activeBonus.message}</p>
+              <ScoreDisplay
+                score={activeBonus.score || score}
+                bonuses={activeBonus.bonuses}
+                variant="detailed"
+                className="mt-2"
+              />
+            </Card>
+          </div>
+        )}
       </div>
     </div>
   );

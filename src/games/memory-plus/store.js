@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { GAME_LEVELS, SCORING_CONFIG } from "./constants";
+import { GAME_LEVELS } from "./constants";
+import { memoryScoring } from "./strategies/scoring";
 
 export const useMemoryStore = create(
   persist(
@@ -9,8 +10,8 @@ export const useMemoryStore = create(
       score: 0,
       highScores: [],
       moves: 0,
-      currentLevel: 0, // Index du niveau actuel (0-9)
-      gameOver: false, // Nouvel état pour gérer la fin de partie
+      currentLevel: 0,
+      gameOver: false,
       currentStreak: 0,
       gameStartTime: null,
       lastMatchTime: null,
@@ -30,54 +31,20 @@ export const useMemoryStore = create(
       handleMatch: () => {
         const state = get();
         const currentTime = Date.now();
-        let bonus = 1;
-        const levelConfig = GAME_LEVELS[state.currentLevel];
 
-        // Bonus de streak
-        if (state.lastMatchTime && currentTime - state.lastMatchTime < 3000) {
-          bonus *= SCORING_CONFIG.timeBonus.excellent.multiplier;
-          set({ currentStreak: state.currentStreak + 1 });
-        } else {
-          set({ currentStreak: 1 });
-        }
-
-        // Calcul du bonus de temps
-        const timeSpent = (currentTime - state.gameStartTime) / 1000;
-        const timeRatio =
-          (levelConfig.timeLimit - timeSpent) / levelConfig.timeLimit;
-
-        if (timeRatio > SCORING_CONFIG.timeBonus.perfect.threshold) {
-          bonus *= SCORING_CONFIG.timeBonus.perfect.multiplier;
-        } else if (timeRatio > SCORING_CONFIG.timeBonus.excellent.threshold) {
-          bonus *= SCORING_CONFIG.timeBonus.excellent.multiplier;
-        } else if (timeRatio > SCORING_CONFIG.timeBonus.good.threshold) {
-          bonus *= SCORING_CONFIG.timeBonus.good.multiplier;
-        }
-
-        // Score final avec multiplicateur de niveau
-        const levelMultiplier =
-          1 + state.currentLevel * SCORING_CONFIG.levelMultiplier;
-        const matchScore = Math.round(
-          SCORING_CONFIG.basePoints * bonus * levelMultiplier
-        );
+        const { score: matchScore, bonuses } =
+          memoryScoring.calculateMatchScore(state, currentTime);
 
         set((state) => ({
           score: state.score + matchScore,
           lastMatchTime: currentTime,
+          currentStreak:
+            state.lastMatchTime && currentTime - state.lastMatchTime < 3000
+              ? state.currentStreak + 1
+              : 1,
         }));
 
-        return {
-          score: matchScore,
-          bonus: bonus,
-          message:
-            timeRatio > 0.7
-              ? SCORING_CONFIG.timeBonus.perfect.message
-              : timeRatio > 0.5
-              ? SCORING_CONFIG.timeBonus.excellent.message
-              : timeRatio > 0.3
-              ? SCORING_CONFIG.timeBonus.good.message
-              : SCORING_CONFIG.timeBonus.normal.message,
-        };
+        return { score: matchScore, bonuses };
       },
 
       handleTimeout: () => {
@@ -107,18 +74,10 @@ export const useMemoryStore = create(
 
       completeLevel: () => {
         const state = get();
-        const levelConfig = GAME_LEVELS[state.currentLevel];
-        const perfectMoves = levelConfig.pairs * 2;
 
-        // Bonus de mouvements
-        let moveBonus = 1;
-        if (state.moves === perfectMoves) {
-          moveBonus = SCORING_CONFIG.moveBonus.perfect.multiplier;
-        } else if (state.moves <= perfectMoves + 2) {
-          moveBonus = SCORING_CONFIG.moveBonus.excellent.multiplier;
-        } else if (state.moves <= perfectMoves + 4) {
-          moveBonus = SCORING_CONFIG.moveBonus.good.multiplier;
-        }
+        // Calcul du bonus de fin de niveau
+        const { score: finalScore, bonuses } =
+          memoryScoring.calculateLevelEndBonus(state);
 
         // Passage au niveau suivant si possible
         const nextLevel = state.currentLevel + 1;
@@ -126,13 +85,13 @@ export const useMemoryStore = create(
 
         set({
           currentLevel: hasNextLevel ? nextLevel : state.currentLevel,
-          score: state.score * moveBonus,
+          score: finalScore,
         });
 
         return {
           hasNextLevel,
-          moveBonus,
-          totalScore: state.score,
+          bonuses,
+          totalScore: finalScore,
         };
       },
 
