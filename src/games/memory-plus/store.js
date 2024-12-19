@@ -1,15 +1,14 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { GAME_LEVELS, SCORING_CONFIG } from "./constants";
-import { memoryScoring } from "./strategies/scoring";
 
-// Helper pour gérer l'expiration des bonus
-const BONUS_DISPLAY_DURATION = 2000; // 2 secondes d'affichage
+// La durée d'affichage des bonus reste utile pour les combos
+const BONUS_DISPLAY_DURATION = 2000;
 
 export const useMemoryStore = create(
   persist(
     (set, get) => ({
-      // État du jeu
+      // États du jeu
       score: 0,
       highScores: [],
       moves: 0,
@@ -18,28 +17,36 @@ export const useMemoryStore = create(
       currentStreak: 0,
       gameStartTime: null,
       lastMatchTime: null,
+      bonusTime: 0, // Nouveau: stocke le temps bonus accumulé
 
-      // Nouvel état pour les bonus
+      // État pour l'affichage des bonus de score
       activeBonus: {
         bonuses: [],
         timestamp: null,
         score: 0,
       },
 
-      // Actions existantes
-      incrementMoves: () => set((state) => ({ moves: state.moves + 1 })),
+      // Actions de base
+      incrementMoves: () =>
+        set((state) => ({
+          moves: state.moves + 1,
+        })),
 
+      // Initialisation d'une nouvelle partie
       initializeGame: () =>
         set({
+          score: 0,
+          moves: 0,
+          currentLevel: 0,
+          currentStreak: 0,
           gameStartTime: Date.now(),
           lastMatchTime: null,
-          currentStreak: 0,
-          moves: 0,
           gameOver: false,
+          bonusTime: 0,
           activeBonus: { bonuses: [], timestamp: null, score: 0 },
         }),
 
-      // Action modifiée pour gérer les bonus
+      // Gestion des bonus visuels
       setBonus: ({ bonuses, score }) =>
         set({
           activeBonus: {
@@ -54,17 +61,37 @@ export const useMemoryStore = create(
           activeBonus: { bonuses: [], timestamp: null, score: 0 },
         }),
 
-      // Actions modifiées pour utiliser le nouveau système de bonus
+      // Gestion d'une paire trouvée
       handleMatch: () => {
         const state = get();
         const currentTime = Date.now();
 
-        const { score: matchScore, bonuses } =
-          memoryScoring.calculateMatchScore(state, currentTime);
+        // Calcul du score de base pour la paire
+        let matchScore = SCORING_CONFIG.basePoints;
+        const bonuses = [];
 
-        // Mise à jour du score et des états liés
+        // Bonus de niveau
+        const levelMultiplier =
+          1 + state.currentLevel * SCORING_CONFIG.levelMultiplier;
+        matchScore *= levelMultiplier;
+
+        // Bonus de streak si la paire est trouvée rapidement
+        if (state.lastMatchTime && currentTime - state.lastMatchTime < 3000) {
+          const streakMultiplier = Math.min(
+            1 + state.currentStreak * SCORING_CONFIG.streakBonus.multiplier,
+            SCORING_CONFIG.streakBonus.maxMultiplier
+          );
+          matchScore *= streakMultiplier;
+          bonuses.push({
+            type: "streak",
+            multiplier: streakMultiplier,
+            message: `Combo x${state.currentStreak + 1}!`,
+          });
+        }
+
+        // Mise à jour du score et des états
         set((state) => ({
-          score: state.score + matchScore,
+          score: state.score + Math.round(matchScore),
           lastMatchTime: currentTime,
           currentStreak:
             state.lastMatchTime && currentTime - state.lastMatchTime < 3000
@@ -73,9 +100,9 @@ export const useMemoryStore = create(
         }));
 
         // Affichage du bonus
-        get().setBonus({ bonuses, score: matchScore });
+        get().setBonus({ bonuses, score: Math.round(matchScore) });
 
-        // Programmation de l'effacement du bonus
+        // Nettoyage automatique du bonus
         setTimeout(() => {
           get().clearBonus();
         }, BONUS_DISPLAY_DURATION);
@@ -83,42 +110,38 @@ export const useMemoryStore = create(
         return { score: matchScore, bonuses };
       },
 
-      completeLevel: () => {
+      // Gestion de la fin d'un niveau
+      completeLevel: (remainingTime = 0) => {
         const state = get();
-
-        // Calcul du bonus de fin de niveau
-        const { score: finalScore, bonuses } =
-          memoryScoring.calculateLevelEndBonus(state);
-
-        // Passage au niveau suivant si possible
         const nextLevel = state.currentLevel + 1;
         const hasNextLevel = nextLevel < GAME_LEVELS.length;
 
-        set({
-          currentLevel: hasNextLevel ? nextLevel : state.currentLevel,
-          score: finalScore,
-        });
-
-        // Affichage du bonus de fin de niveau
-        get().setBonus({ bonuses, score: finalScore });
-
-        // Programmation de l'effacement
-        setTimeout(() => {
-          get().clearBonus();
-        }, BONUS_DISPLAY_DURATION);
+        if (hasNextLevel) {
+          // Ajout du temps restant comme bonus pour le prochain niveau
+          set({
+            currentLevel: nextLevel,
+            bonusTime: remainingTime,
+            // Réinitialisation des streaks entre les niveaux
+            currentStreak: 0,
+            lastMatchTime: null,
+          });
+        } else {
+          // Fin du jeu si plus de niveaux
+          set({ gameOver: true });
+        }
 
         return {
           hasNextLevel,
-          bonuses,
-          totalScore: finalScore,
+          nextLevel: nextLevel,
         };
       },
 
+      // Gestion de la fin de partie
       handleTimeout: () => {
         set({ gameOver: true });
         const state = get();
 
-        // Sauvegarder le score
+        // Sauvegarde du score
         const newHighScore = {
           level: state.currentLevel + 1,
           score: state.score,
@@ -139,6 +162,7 @@ export const useMemoryStore = create(
         };
       },
 
+      // Réinitialisation complète
       resetGame: () =>
         set({
           score: 0,
@@ -148,6 +172,7 @@ export const useMemoryStore = create(
           gameStartTime: null,
           lastMatchTime: null,
           gameOver: false,
+          bonusTime: 0,
           activeBonus: { bonuses: [], timestamp: null, score: 0 },
         }),
     }),
