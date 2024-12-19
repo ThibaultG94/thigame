@@ -38,14 +38,8 @@ export const ICONS = [
 ];
 
 // Fonction pour calculer le temps d'un niveau
-export const calculateLevelTime = (level, useProgressiveTime = false) => {
-  if (useProgressiveTime) {
-    // Option 1: +10 secondes par niveau
-    return 60 + (level - 1) * 10;
-  } else {
-    // Option 2: +60 secondes par niveau
-    return 60 * level;
-  }
+export const calculateLevelTime = (level) => {
+  return 10 * level;
 };
 
 // Fonction pour générer les configurations de niveau
@@ -53,9 +47,14 @@ export const generateLevelConfig = (level) => {
   return {
     id: level,
     pairs: level + 1, // On commence à 2 paires au niveau 1
-    timeLimit: calculateLevelTime(level, true), // true pour utiliser le temps progressif
-    name: `Niveau ${level}`,
-    description: `${(level + 1) * 2} cartes à associer`,
+    timeLimit: calculateLevelTime(level),
+    name: level === 0 ? "Débutant" : `Niveau ${level + 1}`,
+    description:
+      level === 0
+        ? "Démarrez en douceur avec 4 cartes simples"
+        : `${(level + 1) * 2} cartes à associer en ${calculateLevelTime(
+            level
+          )} secondes`,
   };
 };
 
