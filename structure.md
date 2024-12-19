@@ -22,6 +22,9 @@ thigame-web/
 │   │       │       ├── Badge.jsx
 │   │       │       └── types.ts
 │   │       ├── feedback/
+│   │       │   ├── level-complete/
+│   │       │   │   ├── LevelCompleteOverlay.jsx
+│   │       │   │   └── types.ts
 │   │       │   ├── score-display/
 │   │       │   │   ├── ScoreDisplay.jsx
 │   │       │   │   └── types.ts
