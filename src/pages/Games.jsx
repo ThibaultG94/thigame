@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Brain, Dices, Search, Timer } from "lucide-react";
 import { Card, CardContent } from "../components/ui/card";
 import { cn } from "@/utils/cn";
+import GridContainer from "../components/ui/layout/grid-container/GridContainer";
 
 const allGames = [
   {
@@ -168,11 +169,11 @@ export default function Games() {
         </div>
 
         {/* Grille de jeux */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <GridContainer columns={{ xs: 1, md: 2, lg: 3 }} gap="lg" contained>
           {filteredGames.map((game) => (
             <GameCard key={game.id} game={game} />
           ))}
-        </div>
+        </GridContainer>
 
         {filteredGames.length === 0 && (
           <div className="text-center py-12 text-muted-foreground">
