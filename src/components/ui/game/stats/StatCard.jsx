@@ -1,14 +1,8 @@
 import { Card } from "@/components/ui/card";
 import { cn } from "@/utils/cn";
 
-/**
- * Carte de statistique réutilisable pour les jeux
- * Peut afficher n'importe quelle statistique avec une icône et un label
- *
- * @param {import('./types').StatsCardProps} props
- */
 function StatsCard({
-  icon: Icon, // On renomme pour l'utiliser comme composant
+  icon: Icon,
   label,
   value,
   tooltip,
@@ -16,7 +10,7 @@ function StatsCard({
   className,
   onClick,
 }) {
-  // Classes conditionnelles basées sur la variante
+  // Nous définissons d'abord l'objet variantClasses avec les styles pour chaque variante
   const variantClasses = {
     default: "bg-card",
     highlight: "bg-primary/10",

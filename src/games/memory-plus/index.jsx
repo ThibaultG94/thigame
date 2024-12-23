@@ -19,6 +19,7 @@ import { GAME_LEVELS } from "./constants";
 import TimerDisplay from "../../components/ui/feedback/timer-display/TimerDisplay";
 import StatsCard from "../../components/ui/game/stats/StatCard";
 import ScoreDisplay from "../../components/ui/feedback/score-display/ScoreDisplay";
+import LevelDisplay from "../../components/ui/feedback/level-display/LevelDisplay";
 
 export default function MemoryPlus() {
   // Récupération des états et actions du store global
@@ -165,7 +166,16 @@ export default function MemoryPlus() {
 
         {/* Statistiques du jeu */}
         <div className="grid grid-cols-5 gap-2 mb-4">
-          <StatsCard icon={Brain} label="Niveau" value={currentLevel + 1} />
+          <StatsCard
+            icon={Brain}
+            label="Niveau"
+            value={
+              <LevelDisplay
+                level={currentLevel + 1}
+                previousLevel={currentLevel}
+              />
+            }
+          />
           <StatsCard
             icon={Gamepad2}
             label="Score"
