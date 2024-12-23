@@ -25,6 +25,9 @@ thigame-web/
 │   │       │   ├── level-complete/
 │   │       │   │   ├── LevelCompleteOverlay.jsx
 │   │       │   │   └── types.ts
+│   │       │   ├── level-display/
+│   │       │   │   ├── LevelDisplay.jsx
+│   │       │   │   └── types.ts
 │   │       │   ├── score-display/
 │   │       │   │   ├── ScoreDisplay.jsx
 │   │       │   │   └── types.ts
