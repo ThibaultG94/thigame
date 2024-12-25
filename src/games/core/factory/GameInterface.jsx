@@ -3,7 +3,7 @@
  */
 
 /**
- * Interface commune pour tous les <jeux></jeux>
+ * Interface commune pour tous les jeux
  * C'est comme un contrat que chaque jeu doit respecter
  * @interface
  */
