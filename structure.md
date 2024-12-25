@@ -51,6 +51,8 @@ thigame-web/
 │   ├── games/
 │   │   ├── core/
 │   │   │   ├── factory/
+│   │   │   |   ├── GameInterface.jsx
+│   │   │   |   └── GameFactory.jsx
 │   │   │   ├── strategies/
 │   │   │   ├── commands/
 │   │   │   ├── components/
@@ -62,6 +64,7 @@ thigame-web/
 │   │   │   ├── commands/
 │   │   │   ├── hooks/
 │   │   │   ├── store.js
+│   │   │   ├── MemoryGame.jsx
 │   │   │   └── index.jsx
 │   │   │
 │   │   ├── speed-match/
