@@ -3,22 +3,22 @@
  */
 
 /**
- * Interface commune pour tous les jeux
- * C'est comme un contrat que chaque jeu doit respecter
+ * Interface définissant le contrat que tous les jeux doivent respecter
  * @interface
  */
-class GameInterface {
+export class GameInterface {
   /**
-   * Initialise ou réinitialise le jeu
-   * @abstract
+   * Initialise le jeu avec ses dépendances
+   * @param {Object} dependencies - Les dépendances du jeu
+   * @param {Function} dependencies.store - Le store de gestion d'état
+   * @param {Function} dependencies.timer - Factory pour le timer
    */
-  initialize() {
+  initialize(dependencies) {
     throw new Error("La méthode initialize() doit être implémentée");
   }
 
   /**
-   * Démarre le jeu
-   * @abstract
+   * Démarre le jeu ou le niveau en cours
    */
   start() {
     throw new Error("La méthode start() doit être implémentée");
@@ -26,7 +26,6 @@ class GameInterface {
 
   /**
    * Met le jeu en pause
-   * @abstract
    */
   pause() {
     throw new Error("La méthode pause() doit être implémentée");
@@ -34,7 +33,6 @@ class GameInterface {
 
   /**
    * Reprend le jeu après une pause
-   * @abstract
    */
   resume() {
     throw new Error("La méthode resume() doit être implémentée");
@@ -42,20 +40,16 @@ class GameInterface {
 
   /**
    * Réinitialise le jeu
-   * @abstract
    */
   reset() {
     throw new Error("La méthode reset() doit être implémentée");
   }
 
   /**
-   * Retourne le score actuel
-   * @abstract
-   * @returns {number}
+   * Retourne l'état actuel du jeu
+   * @returns {Object} État actuel du jeu
    */
-  getScore() {
-    throw new Error("La méthode getScore() doit être implémentée");
+  getState() {
+    throw new Error("La méthode getState() doit être implémentée");
   }
 }
-
-export default GameInterface;
